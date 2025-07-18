@@ -41,6 +41,9 @@ class LocationResource extends Resource
 
                 TextInput::make('google_map_url')->url()->nullable(),
 
+                TextInput::make('latitude')->numeric()->nullable(),
+                TextInput::make('longitude')->numeric()->nullable(),
+
                 Select::make('agent_id')
                     ->relationship('agent', 'name')
                     ->searchable()

@@ -14,6 +14,8 @@ class Location extends Model
         'agent_logged_in',
         'is_offer_live',
         'offer_live_until',
+        'latitude',
+        'longitude',
     ];
 
     public function agent()
