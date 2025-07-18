@@ -47,22 +47,27 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $distance = 0.1;
-        $locations = Location::select('*')
-            ->selectRaw("(
-            6371 * acos(
-                cos(radians(?)) * cos(radians(latitude)) *
-                cos(radians(longitude) - radians(?)) +
-                sin(radians(?)) * sin(radians(latitude))
-            )
-        ) AS distance", [$lat, $lng, $lat])
-            ->having('distance', '<=', $distance)
-            ->orderBy('distance', 'asc')
-            ->get();
+        $distanceInKm = 0.1;
+        $locations = Location::all();
+        $nearby = $locations->filter(function ($location) use ($lat, $lng, $distanceInKm) {
+            $earthRadius = 6371;
+
+            $dLat = deg2rad($location->latitude - $lat);
+            $dLng = deg2rad($location->longitude - $lng);
+
+            $a = sin($dLat / 2) * sin($dLat / 2) +
+                cos(deg2rad($lat)) * cos(deg2rad($location->latitude)) *
+                sin($dLng / 2) * sin($dLng / 2);
+
+            $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+            $distance = $earthRadius * $c;
+
+            return $distance <= $distanceInKm;
+        })->values();
 
         return response()->json([
             'status' => 'success',
-            'data' => $locations
+            'data' => $nearby
         ]);
     }
 }
