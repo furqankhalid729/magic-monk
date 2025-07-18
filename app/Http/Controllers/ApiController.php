@@ -37,15 +37,25 @@ class ApiController extends Controller
 
     public function getNearbyLocations(Request $request)
     {
-        $lat = $request->query('lat');
-        $lng = $request->query('lng');
+        $corJson = $request->query('cor');
 
-        if (!$lat || !$lng) {
+        if (!$corJson) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Latitude and Longitude are required.'
+                'message' => 'Coordinates (cor) are required.'
             ], 400);
         }
+        $coordinates = json_decode($corJson, true);
+
+        if (!is_array($coordinates) || !isset($coordinates['latitude'], $coordinates['longitude'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid or missing latitude/longitude in cor.'
+            ], 400);
+        }
+
+        $lat = $coordinates['latitude'];
+        $lng = $coordinates['longitude'];
 
         $distanceInKm = 0.1;
         $locations = Location::all();

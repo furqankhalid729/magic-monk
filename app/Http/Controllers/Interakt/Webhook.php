@@ -10,16 +10,42 @@ class Webhook extends Controller
 {
     public function handle(Request $request)
     {
-        Log::info('Valid Interakt Webhook Received', $request->all());
         $topic = $request->input('type');
-        $allowedTopics = ['message_received', 'workflow_response_update'];
+        switch ($topic) {
+            case 'message_received':
+                $messageType = $request->input('data.message.message_content_type');
 
-        // if (!in_array($topic, $allowedTopics)) {
-        //     Log::warning('Unhandled Interakt Webhook Topic', ['topic' => $topic]);
-        //     return response()->json(['error' => 'Unhandled topic'], 400);
-        // }
-        // Log::info('Valid Interakt Webhook Received', $request->all());
+                switch ($messageType) {
+                    case 'Location':
+                        $locationData = json_decode($request->input('data.message.message'), true);
 
-        return response()->json(['status' => 'success', 'message' => 'Webhook processed successfully'], 200);
+                        if (isset($locationData['latitude'], $locationData['longitude'])) {
+                            $lat = $locationData['latitude'];
+                            $lng = $locationData['longitude'];
+                            $message = "Location received: Latitude = $lat, Longitude = $lng";
+                        } else {
+                            $message = 'Invalid location data received.';
+                        }
+                        break;
+
+                    case 'Text':
+                        $text = $request->input('data.message.message');
+                        $message = "Text message received: \"$text\"";
+                        break;
+
+                    default:
+                        $message = "Unhandled message type: $messageType";
+                }
+
+                break;
+
+            default:
+                $message = 'Unknown webhook topic.';
+        }
+
+        return response()->json([
+            'status' => 'ok',
+            'message' => $message,
+        ]);
     }
 }
