@@ -75,9 +75,12 @@ class ApiController extends Controller
             return $distance <= $distanceInKm;
         })->values();
 
+        $names = $nearby->mapWithKeys(function ($item, $index) {
+            return ["building_name" . ($index + 1) => $item->building_name];
+        })->toArray();
+
         return response()->json([
-            'status' => 'success',
-            'data' => $nearby
+            'names' => $names
         ]);
     }
 }
