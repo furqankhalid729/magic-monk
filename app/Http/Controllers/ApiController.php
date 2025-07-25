@@ -83,4 +83,14 @@ class ApiController extends Controller
             'names' => $names
         ]);
     }
+
+    public function testPayment($number){
+        $response = sendInteraktMessage(
+            $number,
+            ['Hi User', 'Order #1234'], 
+            ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/fZSiDosqseLO/WhatsApp%20Image%202025-07-15%20at%2017.39.09.jpeg?se=2030-07-12T14%3A28%3A34Z&sp=rt&sv=2019-12-12&sr=b&sig=dQShOEauRkfq6xrdOzrP%2B4ZmWcwPDcwYEng43lpyQHw%3D'],
+            'paymentfm'
+        );
+        return response()->json($response);
+    }
 }
