@@ -57,7 +57,7 @@ class ApiController extends Controller
         $lat = $coordinates['latitude'];
         $lng = $coordinates['longitude'];
 
-        $distanceInKm = 0.1;
+        $distanceInKm = 0.2;
         $locations = Location::all();
         $nearby = $locations->filter(function ($location) use ($lat, $lng, $distanceInKm) {
             $earthRadius = 6371;
