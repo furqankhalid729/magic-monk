@@ -79,9 +79,10 @@ class ApiController extends Controller
             return ["building_name" . ($index + 1) => $item->building_name];
         })->toArray();
 
-        $status = !empty(array_filter($names, fn($name) => !empty($name)));
+        $available = !empty(array_filter($names, fn($name) => !empty($name))) ? 'yes' : 'no';
+        $names['available'] = $available;
+
         return response()->json([
-            'status' => $status,
             'names' => $names
         ]);
     }
