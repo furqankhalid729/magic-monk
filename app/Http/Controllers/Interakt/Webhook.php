@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Interakt;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class Webhook extends Controller
 {
@@ -68,6 +69,55 @@ class Webhook extends Controller
                 }
 
                 break;
+
+            case "cart_order_update":
+                $data = $request->input('data');
+                Log::info('Cart order update received', $data);
+                // Extract variables
+                $orderNumber = $data['id'];
+                $orderTime = Carbon::parse($data['created_at_utc'])
+                    ->timezone('Asia/Kolkata')
+                    ->format('h:i A');
+
+                $deliveryTime = Carbon::parse($data['created_at_utc'])
+                    ->timezone('Asia/Kolkata')
+                    ->addMinutes(5)
+                    ->format('h:i A');
+
+                $name = $data['customer_traits']['name'] ?? 'Customer';
+                $address = $data['customer_traits']['FullAddress'] ?? 'N/A';
+                $building = $data['customer_traits']['building'] ?? 'N/A';
+                $customerPhone = "+91" . $data['customer_phone_number']['phone_number'] ?? 'N/A';
+                $agentMobile = '+91' . getAgentPhoneNumber($data['customer_traits']['building'] ?? '');
+
+                $itemList = '';
+                foreach ($data['order_items'] as $item) {
+                    $itemList .= $item['item_name'] . ' x' . $item['quantity'] . " | ";
+                }
+                $itemList = trim($itemList);
+
+                $totalAmount = $data['total_amount'];
+                $paidOnline = ($data['payment_status'] === 'PAID') ? $totalAmount : 0;
+                $toCollect = $totalAmount - $paidOnline;
+
+                $bodyValues = [
+                    $orderNumber,
+                    $orderTime,
+                    $deliveryTime,
+                    $name,
+                    $address,
+                    $building,
+                    $customerPhone,
+                    $itemList,
+                    $totalAmount,
+                    $paidOnline,
+                    $toCollect
+                ];
+                $allStrings = array_map('strval', $bodyValues);
+                Log::info('Body values for order update', $allStrings);
+                $message = sendInteraktMessage($agentMobile, $allStrings, [], "order2agent");
+                break;
+
 
             default:
                 $message = 'Unknown webhook topic.';
