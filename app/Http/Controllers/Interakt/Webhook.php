@@ -100,22 +100,38 @@ class Webhook extends Controller
                 $paidOnline = ($data['payment_status'] === 'PAID') ? $totalAmount : 0;
                 $toCollect = $totalAmount - $paidOnline;
 
-                $bodyValues = [
-                    $orderNumber,
-                    $orderTime,
-                    $deliveryTime,
-                    $name,
-                    $address,
-                    $building,
-                    $customerPhone,
-                    $itemList,
-                    $totalAmount,
-                    $paidOnline,
-                    $toCollect
+                // $bodyValues = [
+                //     $orderNumber,
+                //     $orderTime,
+                //     $deliveryTime,
+                //     $name,
+                //     $address,
+                //     $building,
+                //     $customerPhone,
+                //     $itemList,
+                //     $totalAmount,
+                //     $paidOnline,
+                //     $toCollect,
+                //     $agentMobile
+                // ];
+                $eventData = [
+                    "orderNumber"   => $orderNumber,
+                    "orderTime"     => $orderTime,
+                    "deliveryTime"  => $deliveryTime,
+                    "customerName"  => $name,
+                    "address"       => $address,
+                    "building"      => $building,
+                    "customerPhone" => $customerPhone,
+                    "itemList"      => $itemList,
+                    "totalAmount"   => $totalAmount,
+                    "paidOnline"    => $paidOnline,
+                    "toCollect"     => $toCollect,
+                    "agentMobile"   => $agentMobile,
                 ];
-                $allStrings = array_map('strval', $bodyValues);
-                Log::info('Body values for order update', $allStrings);
-                $message = sendInteraktMessage($agentMobile, $allStrings, [], "order2agent");
+                //$allStrings = array_map('strval', $eventData);
+                Log::info('Body values for order update', $eventData);
+                //$message = createInteraktEvent($agentMobile, $allStrings, [], "order2agent");
+                $message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
                 break;
 
 

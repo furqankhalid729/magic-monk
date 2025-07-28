@@ -137,3 +137,34 @@ if (!function_exists('getAgentPhoneNumber')) {
         return null;
     }
 }
+
+if (!function_exists('createInteraktEvent')) {
+    function createInteraktEvent($agentNumber,$eventName, $eventData = [])
+    {
+        $apiKey = env('INTERAKT_API_KEY');
+
+        $client = new Client();
+
+        $headers = [
+            'Authorization' => 'Basic ' . $apiKey,
+            'Content-Type' => 'application/json',
+        ];
+
+        $body = [
+            "fullPhoneNumber" => "+919867806668",
+            "event" => $eventName,
+            "traits" => $eventData,
+        ];
+        Log::info('Creating Interakt event', [
+            'event_name' => $eventName,
+            'event_data' => $eventData
+        ]);
+        $request = new Request('POST', env('INTERAKT_EVENT_API_URL'), $headers, json_encode($body));
+        try {
+            $res = $client->sendAsync($request)->wait();
+            return json_decode($res->getBody()->getContents(), true);
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+}
