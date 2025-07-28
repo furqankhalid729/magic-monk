@@ -151,7 +151,7 @@ if (!function_exists('createInteraktEvent')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => $agentNumber,
+            "fullPhoneNumber" => "+91" . $agentNumber,
             "event" => $eventName,
             "traits" => $eventData,
         ];
