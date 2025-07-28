@@ -130,6 +130,7 @@ if (!function_exists('getAgentPhoneNumber')) {
         // $firstNearby = $nearby->first();
 
         $location = Location::where('building_name', $bulding)->get();
+        Log::info('getAgentPhoneNumber called with building', ['building' => $bulding]);
         if ($location->isNotEmpty()) {
             return $location->first()->agent->whatsapp_number;
         }
@@ -151,7 +152,7 @@ if (!function_exists('createInteraktEvent')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => "+91" . $agentNumber,
+            "fullPhoneNumber" => $agentNumber,
             "event" => $eventName,
             "traits" => $eventData,
         ];
