@@ -96,4 +96,19 @@ class ApiController extends Controller
         );
         return response()->json($response);
     }
+    public function testNotification(Request $request)
+    {
+        $phone = "ExponentPushToken[KWTa_jDgmuBhoOVKmDzSUS]";
+        $title = $request->query('title', 'Test Notification');
+        $body = $request->query('body', 'This is a test notification.');
+        $data = $request->query('data', ['key' => 'value']);
+
+        if (!$phone) {
+            return response()->json(['error' => 'Phone number is required'], 400);
+        }
+
+        $response = sendExpoPushNotification($phone, $title, $body, $data);
+
+        return response()->json($response);
+    }
 }

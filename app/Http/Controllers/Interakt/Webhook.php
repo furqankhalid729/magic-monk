@@ -90,7 +90,15 @@ class Webhook extends Controller
                 $address = $data['customer_traits']['FullAddress'] ?? 'N/A';
                 $building = $data['customer_traits']['building'] ?? 'N/A';
                 $customerPhone = "+91" . $data['customer_phone_number']['phone_number'] ?? 'N/A';
-                $agentMobile = '+91' . getAgentPhoneNumber($data['customer_traits']['building'] ?? '');
+                $agentDetails = getAgentPhoneNumber($data['customer_traits']['building'] ?? '');
+                $token = null;
+                $agentMobile = null;
+
+                if ($agentDetails) {
+                    ['whatsapp_number' => $number, 'token' => $agentToken] = $agentDetails;
+                    $agentMobile = '+91' . $number;
+                    $token = $agentToken;
+                }
 
                 $itemList = '';
                 foreach ($data['order_items'] as $item) {
@@ -118,7 +126,18 @@ class Webhook extends Controller
                 //$allStrings = array_map('strval', $eventData);
                 Log::info('Body values for order update', $eventData);
                 //$message = createInteraktEvent($agentMobile, $allStrings, [], "order2agent");
-                $message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
+                //$message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
+                $title = "New Order Received". " #$orderNumber";
+                $body = "$name from $building\n" .
+                        "Collect: ₹$toCollect ";
+                Log::info('Sending notification to agent', [
+                    'token' => $token,
+                    'title' => $title,
+                    'body' => $body,
+                    'data' => $eventData
+                ]);
+                $message = sendExpoPushNotification($token, $title, $body, $data);
+                Log::info('Notification sent', ['message' => $message]);
                 $order = Order::create([
                     'customer_name' => $name,
                     'order_id' => $orderNumber,

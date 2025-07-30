@@ -7,3 +7,4 @@ Route::get('/', function () {
 });
 
 Route::get('/test-payment/{phoneNumber}/{template}', [ApiController::class, 'testPayment']);
+Route::get('/test-payment', [ApiController::class, 'testNotification']);

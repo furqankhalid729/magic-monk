@@ -4,6 +4,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Laravel\Telescope\Telescope;
 use App\Models\Location;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 if (!function_exists('sendInteraktMessage')) {
@@ -95,44 +96,18 @@ if (!function_exists('sendInteraktMessage')) {
 }
 
 if (!function_exists('getAgentPhoneNumber')) {
-    function getAgentPhoneNumber($bulding)
+    function getAgentPhoneNumber($building)
     {
-        // Log::info('getAgentPhoneNumber called with coordinates', ['cor' => $cor]);
-        // $coordinates = json_decode($cor, true);
-        // Log::info('Parsed coordinates', ['coordinates' => $coordinates]);
-        // if (!isset($coordinates['latitude'], $coordinates['longitude'])) {
-        //     return null;
-        // }
+        Log::info('getAgentPhoneNumber called with building', ['building' => $building]);
 
-        // $lat = $coordinates['latitude'];
-        // $lng = $coordinates['longitude'];
+        $location = Location::where('building_name', $building)->get();
 
-        // // Step 2: Filter nearby locations (within 0.2 km)
-        // $distanceInKm = 0.2;
-        // $locations = Location::all();
-
-        // $nearby = $locations->filter(function ($location) use ($lat, $lng, $distanceInKm) {
-        //     $earthRadius = 6371;
-
-        //     $dLat = deg2rad($location->latitude - $lat);
-        //     $dLng = deg2rad($location->longitude - $lng);
-
-        //     $a = sin($dLat / 2) ** 2 +
-        //         cos(deg2rad($lat)) * cos(deg2rad($location->latitude)) *
-        //         sin($dLng / 2) ** 2;
-
-        //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        //     $distance = $earthRadius * $c;
-
-        //     return $distance <= $distanceInKm;
-        // })->values();
-
-        // $firstNearby = $nearby->first();
-
-        $location = Location::where('building_name', $bulding)->get();
-        Log::info('getAgentPhoneNumber called with building', ['building' => $bulding]);
-        if ($location->isNotEmpty()) {
-            return $location->first()->agent->whatsapp_number;
+        if ($location->isNotEmpty() && $location->first()->agent) {
+            $agent = $location->first()->agent;
+            return [
+                'whatsapp_number' => $agent->whatsapp_number,
+                'token' => $agent->notification_token,
+            ];
         }
 
         return null;
@@ -140,7 +115,7 @@ if (!function_exists('getAgentPhoneNumber')) {
 }
 
 if (!function_exists('createInteraktEvent')) {
-    function createInteraktEvent($agentNumber,$eventName, $eventData = [])
+    function createInteraktEvent($agentNumber, $eventName, $eventData = [])
     {
         $apiKey = env('INTERAKT_API_KEY');
 
@@ -167,5 +142,18 @@ if (!function_exists('createInteraktEvent')) {
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
+    }
+}
+if (!function_exists('sendExpoPushNotification')) {
+    function sendExpoPushNotification($token, $title, $body, $data = [])
+    {
+        $response = Http::post('https://exp.host/--/api/v2/push/send', [
+            'to' => $token,
+            'title' => $title,
+            'body' => $body,
+            'data' => $data,
+        ]);
+
+        return $response->json();
     }
 }
