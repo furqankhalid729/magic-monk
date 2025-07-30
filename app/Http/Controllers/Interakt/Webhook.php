@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 class Webhook extends Controller
 {
@@ -99,21 +101,6 @@ class Webhook extends Controller
                 $totalAmount = $data['total_amount'];
                 $paidOnline = ($data['payment_status'] === 'PAID') ? $totalAmount : 0;
                 $toCollect = $totalAmount - $paidOnline;
-
-                // $bodyValues = [
-                //     $orderNumber,
-                //     $orderTime,
-                //     $deliveryTime,
-                //     $name,
-                //     $address,
-                //     $building,
-                //     $customerPhone,
-                //     $itemList,
-                //     $totalAmount,
-                //     $paidOnline,
-                //     $toCollect,
-                //     $agentMobile
-                // ];
                 $eventData = [
                     "orderNumber"   => $orderNumber,
                     "orderTime"     => $orderTime,
@@ -132,6 +119,26 @@ class Webhook extends Controller
                 Log::info('Body values for order update', $eventData);
                 //$message = createInteraktEvent($agentMobile, $allStrings, [], "order2agent");
                 $message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
+                $order = Order::create([
+                    'customer_name' => $name,
+                    'order_id' => $orderNumber,
+                    'customer_phone' => $customerPhone,
+                    'building' => $building,
+                    'order_time' => Carbon::now(),
+                    'delivery_time' => Carbon::now()->addMinutes(5),
+                    'agent_number' => $agentMobile,
+                    'message_id' => $message['id'] ?? null,
+                    'total_amount' => $totalAmount,
+                ]);
+                foreach ($data['order_items'] as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'item_name' => $item['item_name'],
+                        'price' => $item['price'],
+                        'quantity' => $item['quantity'],
+                        'amount' => $item['amount'],
+                    ]);
+                }
                 break;
 
 
