@@ -126,7 +126,7 @@ class Webhook extends Controller
                 //$allStrings = array_map('strval', $eventData);
                 Log::info('Body values for order update', $eventData);
                 //$message = createInteraktEvent($agentMobile, $allStrings, [], "order2agent");
-                //$message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
+                $message = createInteraktEvent($agentMobile,"Send Order To Agent", $eventData);
                 $title = "New Order Received". " #$orderNumber";
                 $body = "$name from $building\n" .
                         "Collect: ₹$toCollect ";
