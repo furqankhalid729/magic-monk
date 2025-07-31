@@ -92,7 +92,7 @@ class AndroidAgentController extends Controller
         }
 
         $order->status = $request->status;
-        $order->delivered_at = $request->status === 'delivered'
+        $order->delivered_on = $request->status === 'delivered'
             ? Carbon::now('Asia/Kolkata')
             : null;
         $order->save();
