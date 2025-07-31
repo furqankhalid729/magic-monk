@@ -22,3 +22,6 @@ Route::get('agent/order', [AndroidAgentController::class, 'order'])
 
 Route::post('agent/token', [AndroidAgentController::class, 'storeToken'])
     ->name('agent.token');
+
+Route::post('agent/order/status', [AndroidAgentController::class, 'updateOrderStatus'])
+    ->name('agent.order.status');

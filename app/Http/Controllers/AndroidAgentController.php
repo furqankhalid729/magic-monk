@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agent;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AndroidAgentController extends Controller
 {
@@ -29,7 +30,6 @@ class AndroidAgentController extends Controller
         }
 
         return response()->json(['message' => 'Invalid credentials.', 'status' => false], 200);
-
     }
 
     public function order(Request $request)
@@ -50,10 +50,10 @@ class AndroidAgentController extends Controller
             ->get();
 
         if (!$orders) {
-            return response()->json(['message' => 'Orders not found.', 'status'=>false], 200);
+            return response()->json(['message' => 'Orders not found.', 'status' => false], 200);
         }
 
-        return response()->json(['message' => 'Order retrieved successfully.', 'status'=>true, 'orders' => $orders], 200);
+        return response()->json(['message' => 'Order retrieved successfully.', 'status' => true, 'orders' => $orders], 200);
     }
 
     public function storeToken(Request $request)
@@ -76,5 +76,27 @@ class AndroidAgentController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Token stored successfully.'], 200);
+    }
+
+    public function updateOrderStatus(Request $request)
+    {
+        $request->validate([
+            'orderId' => 'required|integer',
+            'status' => 'required|string',
+        ]);
+
+        $order = Order::find($request->orderId);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        $order->status = $request->status;
+        $order->delivered_at = $request->status === 'delivered'
+            ? Carbon::now('Asia/Kolkata')
+            : null;
+        $order->save();
+
+        return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
     }
 }
