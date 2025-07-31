@@ -86,11 +86,12 @@ class Webhook extends Controller
                     ->addMinutes(5)
                     ->format('h:i A');
 
-                $name = $data['customer_traits']['name'] ?? 'Customer';
+                $name = $data['customer_traits']['RealName'] ?? $data['customer_traits']['name'] ?? 'Customer';
                 $address = $data['customer_traits']['FullAddress'] ?? 'N/A';
                 $building = $data['customer_traits']['building'] ?? 'N/A';
                 $customerPhone = "+91" . $data['customer_phone_number']['phone_number'] ?? 'N/A';
                 $agentDetails = getAgentPhoneNumber($data['customer_traits']['building'] ?? '');
+
                 $token = null;
                 $agentMobile = null;
 
@@ -142,7 +143,7 @@ class Webhook extends Controller
                     'customer_name' => $name,
                     'order_id' => $orderNumber,
                     'customer_phone' => $customerPhone,
-                    'building' => $building,
+                    'building' => $address,
                     'order_time' => Carbon::now('Asia/Kolkata'),
                     'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
                     'agent_number' => $agentMobile,
