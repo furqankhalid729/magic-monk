@@ -146,7 +146,7 @@ class Webhook extends Controller
                     'customer_name' => $name,
                     'order_id' => $orderNumber,
                     'customer_phone' => $customerPhone,
-                    'building' => $address,
+                    'building' => $building,
                     'order_time' => Carbon::now('Asia/Kolkata'),
                     'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
                     'agent_number' => $agentMobile,
