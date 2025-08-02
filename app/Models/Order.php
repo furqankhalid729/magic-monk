@@ -17,7 +17,9 @@ class Order extends Model
         'message_id',
         'total_amount',
         'delivered_on',
-        'status'
+        'status',
+        'address',
+        'order_details',
     ];
 
     // Relationships

@@ -43,7 +43,7 @@ if (!function_exists('sendInteraktMessage')) {
                 "bodyValues" => $bodyValues,
                 "order_details" => [
                     [
-                        "reference_id" => "22july25mjwapaytemp1",
+                        "reference_id" => "1Aug2025mjwapay",
                         "order_items" => [
                             [
                                 "name" => "Butterscotch Icecream 100 ml (promo)",
@@ -84,13 +84,13 @@ if (!function_exists('sendInteraktMessage')) {
         ];
 
 
-        $request = new Request('POST', env('INTERAKT_MESSAGE_API_URL'), $headers, json_encode($body));
+        $response = Http::withHeaders($headers)
+            ->post(env('INTERAKT_MESSAGE_API_URL'), $body);
 
-        try {
-            $res = $client->sendAsync($request)->wait();
-            return json_decode($res->getBody()->getContents(), true);
-        } catch (\Exception $e) {
-            return ['error' => $e->getMessage()];
+        if ($response->successful()) {
+            return $response->json();
+        } else {
+            return ['error' => $response->body()];
         }
     }
 }

@@ -91,6 +91,9 @@ class Webhook extends Controller
                 $building = $data['customer_traits']['building'] ?? 'N/A';
                 $customerPhone = "+91" . $data['customer_phone_number']['phone_number'] ?? 'N/A';
                 $agentDetails = getAgentPhoneNumber($data['customer_traits']['building'] ?? '');
+                $otherData = [
+                    'real_name' => $data['customer_traits']['RealName']
+                ];
 
                 $token = null;
                 $agentMobile = null;
@@ -149,6 +152,8 @@ class Webhook extends Controller
                     'agent_number' => $agentMobile,
                     'message_id' => $message['id'] ?? null,
                     'total_amount' => $totalAmount,
+                    'address' => $address,
+                    'order_details' => json_encode($data['order_items']),
                 ]);
                 foreach ($data['order_items'] as $item) {
                     OrderItem::create([
