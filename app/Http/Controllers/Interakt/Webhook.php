@@ -153,7 +153,7 @@ class Webhook extends Controller
                     'message_id' => $message['id'] ?? null,
                     'total_amount' => $totalAmount,
                     'address' => $address,
-                    'order_details' => $otherData,
+                    'order_details' => json_encode($otherData),
                 ]);
                 foreach ($data['order_items'] as $item) {
                     OrderItem::create([

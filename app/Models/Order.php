@@ -22,6 +22,10 @@ class Order extends Model
         'order_details',
     ];
 
+    protected $casts = [
+        'order_details' => 'array',
+    ];
+
     // Relationships
     public function items()
     {
