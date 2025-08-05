@@ -98,7 +98,7 @@ class ApiController extends Controller
     }
     public function testNotification(Request $request)
     {
-        $phone = "ExponentPushToken[MdN0gUFgBHmz8SPLKcaQ66]";
+        $phone = "ExponentPushToken[N7gUohJhjd11r2EU0iTvJS]";
         $title = $request->query('title', 'Test updated');
         $body = $request->query('body', 'This is a test notification.');
         $data = $request->query('data', ['key' => 'value']);

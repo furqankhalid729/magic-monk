@@ -44,7 +44,6 @@ class AndroidAgentController extends Controller
         }
 
         $orders = Order::where('agent_number', $agentId)
-            ->where('status', 'pending')
             ->with(['items'])
             ->orderBy('created_at', 'desc')
             ->get();

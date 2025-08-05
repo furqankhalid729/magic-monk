@@ -152,6 +152,8 @@ if (!function_exists('sendExpoPushNotification')) {
             'title' => $title,
             'body' => $body,
             'data' => $data,
+             "sound"=> "notification",
+            'priority' => 'high',
         ]);
 
         return $response->json();
