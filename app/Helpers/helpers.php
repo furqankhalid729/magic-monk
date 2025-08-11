@@ -20,18 +20,6 @@ if (!function_exists('sendInteraktMessage')) {
             'Content-Type' => 'application/json',
         ];
 
-        // $body = [
-        //     "fullPhoneNumber" => $phoneNumber,
-        //     "campaignId" => $campaignId,
-        //     "type" => "Template",
-        //     "template" => [
-        //         "name" => $templateName,
-        //         "languageCode" => "en",
-        //         "headerValues" => $headerValues,
-        //         "bodyValues" => $bodyValues,
-        //     ]
-        // ];
-
         $body = [
             "fullPhoneNumber" => $phoneNumber,
             "campaignId" => $campaignId,
@@ -43,7 +31,7 @@ if (!function_exists('sendInteraktMessage')) {
                 "bodyValues" => $bodyValues,
                 "order_details" => [
                     [
-                        "reference_id" => "1Aug2025mjwapay",
+                        "reference_id" => "furqanTest",
                         "order_items" => [
                             [
                                 "name" => "Butterscotch Icecream 100 ml (promo)",
@@ -76,7 +64,7 @@ if (!function_exists('sendInteraktMessage')) {
                         "payment_option_expires_in" => [
                             "value" => 15,
                             "unit" => "minutes",
-                            "expiration_message" => ""
+                            "expiration_message" => " Expires in 15 minutes"
                         ]
                     ]
                 ]
@@ -88,6 +76,72 @@ if (!function_exists('sendInteraktMessage')) {
             ->post(env('INTERAKT_MESSAGE_API_URL'), $body);
 
         if ($response->successful()) {
+            return $response->json();
+        } else {
+            return ['error' => $response->body()];
+        }
+    }
+}
+
+if (!function_exists('sendWhatsAppPay')) {
+    function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [],$totalAmount = 0, $orderId = "order67557",$address)
+    {
+        $apiKey = env('INTERAKT_API_KEY');
+        $campaignId = $campaignId ?? null;
+
+        $client = new Client();
+        Log::info('Sending WhatsApp Pay message', [
+            'phoneNumber' => $phoneNumber,
+            'templateName' => $templateName,
+            'campaignId' => $campaignId,
+            'totalAmount' => $totalAmount,
+            'orderItems' => $orderItems,
+        ]);
+
+        $headers = [
+            'Authorization' => 'Basic ' . $apiKey,
+            'Content-Type' => 'application/json',
+        ];
+
+        $body = [
+            "fullPhoneNumber" => "+919867871610",
+            "campaignId" => $campaignId,
+            "type" => "Template",
+            "template" => [
+                "name" => $templateName,
+                "languageCode" => "en",
+                "headerValues" => $headerValues,
+                "bodyValues" => $bodyValues,
+                "order_details" => [
+                    [
+                        "reference_id" => $orderId,
+                        "order_items" => $orderItems,
+                        "shipping_addresses" => [
+                            $address
+                        ],
+                        "subtotal" => $totalAmount,
+                        "discount" => 0,
+                        "tax" => 0,
+                        "shipping" => 0,
+                        "total_amount" => $totalAmount,
+                        "currency" => "INR",
+                        "payment_option_expires_in" => [
+                            "value" => 15,
+                            "unit" => "minutes",
+                            "expiration_message" => " Expires in 15 minutes"
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $response = Http::withHeaders($headers)
+            ->post(env('INTERAKT_MESSAGE_API_URL'), $body);
+
+        if ($response->successful()) {
+            Log::info('WhatsApp Pay message sent successfully', [
+                'response' => $response->json()
+            ]);
             return $response->json();
         } else {
             return ['error' => $response->body()];
