@@ -8,3 +8,11 @@ Route::get('/', function () {
 
 Route::get('/test-payment/{phoneNumber}/{template}', [ApiController::class, 'testPayment']);
 Route::get('/test-payment', [ApiController::class, 'testNotification']);
+
+Route::get('/privacy-policy', function () {
+    return view('privacy-policy');
+});
+
+Route::get('/terms-and-conditions', function () {
+    return view('terms-and-condition');
+});
