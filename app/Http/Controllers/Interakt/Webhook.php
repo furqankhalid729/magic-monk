@@ -154,8 +154,8 @@ class Webhook extends Controller
                     $itemList,
                     count($data['order_items']),
                     $totalAmount,
-                    1,
-                    $totalAmount - 1
+                    "0",
+                    $totalAmount
                 ];
                 $response = sendWhatsAppPay($customerPhone, $new_payload, [$headerImage], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $orderNumber, $pay_address);
                 Log::info('WhatsApp Pay response', ['response' => $response]);
