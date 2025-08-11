@@ -104,7 +104,7 @@ if (!function_exists('sendWhatsAppPay')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => "+919867871610",
+            "fullPhoneNumber" => $phoneNumber,
             "campaignId" => $campaignId,
             "type" => "Template",
             "template" => [
