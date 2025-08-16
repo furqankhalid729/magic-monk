@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Support\Facades\Cache;
 
 class Webhook extends Controller
 {
@@ -95,7 +96,6 @@ class Webhook extends Controller
                     'real_name' => $data['customer_traits']['RealName'] ?? 'NA'
                 ];
                 $headerImage = "https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/fZSiDosqseLO/WhatsApp%20Image%202025-07-15%20at%2017.39.09.jpeg?se=2030-07-12T14%3A28%3A34Z&sp=rt&sv=2019-12-12&sr=b&sig=dQShOEauRkfq6xrdOzrP%2B4ZmWcwPDcwYEng43lpyQHw%3D";
-
                 $token = null;
                 $agentMobile = null;
 
@@ -104,30 +104,14 @@ class Webhook extends Controller
                     $agentMobile = '+91' . $number;
                     $token = $agentToken;
                 }
-
                 $itemList = '';
                 foreach ($data['order_items'] as $item) {
                     $itemList .= $item['item_name'] . ' x' . $item['quantity'] . " | ";
                 }
                 $itemList = trim($itemList);
-
                 $totalAmount = $data['total_amount'];
                 $paidOnline = ($data['payment_status'] === 'PAID') ? $totalAmount : 0;
                 $toCollect = $totalAmount - $paidOnline;
-                $eventData = [
-                    "orderNumber"   => $orderNumber,
-                    "orderTime"     => $orderTime,
-                    "deliveryTime"  => $deliveryTime,
-                    "customerName"  => $name,
-                    "address"       => $address,
-                    "building"      => $building,
-                    "customerPhone" => $customerPhone,
-                    "itemList"      => $itemList,
-                    "totalAmount"   => $totalAmount,
-                    "paidOnline"    => $paidOnline,
-                    "toCollect"     => $toCollect,
-                    "agentMobile"   => $agentMobile,
-                ];
                 $simplifiedItems = array_map(function ($item) {
                     return [
                         "name" => $item["item_name"],
@@ -163,13 +147,6 @@ class Webhook extends Controller
                 $title = "New Order Received" . " #$orderNumber";
                 $body = "$name from $building\n" .
                     "Collect: ₹$toCollect ";
-                Log::info('Sending notification to agent', [
-                    'token' => $token,
-                    'title' => $title,
-                    'body' => $body,
-                    'data' => $eventData
-                ]);
-
 
                 $message = sendExpoPushNotification($token, $title, $body, $data);
                 Log::info('Notification sent', ['message' => $message]);
@@ -184,7 +161,6 @@ class Webhook extends Controller
                     'message_id' => $message['id'] ?? null,
                     'total_amount' => $totalAmount,
                     'address' => $address,
-                    
                 ]);
                 foreach ($data['order_items'] as $item) {
                     OrderItem::create([

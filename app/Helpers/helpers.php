@@ -104,7 +104,7 @@ if (!function_exists('sendWhatsAppPay')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => $phoneNumber,
+            "fullPhoneNumber" => "+923135052539",//$phoneNumber,
             "campaignId" => $campaignId,
             "type" => "Template",
             "template" => [
@@ -114,7 +114,7 @@ if (!function_exists('sendWhatsAppPay')) {
                 "bodyValues" => $bodyValues,
                 "order_details" => [
                     [
-                        "reference_id" => $orderId,
+                        "reference_id" => strval($orderId),
                         "order_items" => $orderItems,
                         "shipping_addresses" => [
                             $address
