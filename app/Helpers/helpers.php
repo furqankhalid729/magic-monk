@@ -28,46 +28,7 @@ if (!function_exists('sendInteraktMessage')) {
                 "name" => $templateName,
                 "languageCode" => "en",
                 "headerValues" => $headerValues,
-                "bodyValues" => $bodyValues,
-                "order_details" => [
-                    [
-                        "reference_id" => "furqanTest",
-                        "order_items" => [
-                            [
-                                "name" => "Butterscotch Icecream 100 ml (promo)",
-                                "quantity" => 1,
-                                "amount" => 39,
-                                "country_of_origin" => "India"
-                            ]
-                        ],
-                        "shipping_addresses" => [
-                            [
-                                "name" => "Nikunj B",
-                                "phone_number" => "919867806668",
-                                "address" => "Bandra Kurla Complex",
-                                "city" => "Mumbai",
-                                "state" => "Maharastra",
-                                "in_pin_code" => "400051",
-                                "house_number" => "12",
-                                "tower_number" => "5",
-                                "building_name" => "One BKC",
-                                "landmark_area" => "Near BKC Circle",
-                                "country" => "IN"
-                            ]
-                        ],
-                        "subtotal" => 39,
-                        "discount" => 0,
-                        "tax" => 0,
-                        "shipping" => 0,
-                        "total_amount" => 39,
-                        "currency" => "INR",
-                        "payment_option_expires_in" => [
-                            "value" => 15,
-                            "unit" => "minutes",
-                            "expiration_message" => " Expires in 15 minutes"
-                        ]
-                    ]
-                ]
+                "bodyValues" => $bodyValues
             ]
         ];
 
@@ -104,7 +65,7 @@ if (!function_exists('sendWhatsAppPay')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => "+923135052539",//$phoneNumber,
+            "fullPhoneNumber" => $phoneNumber,//"+919867871610",//
             "campaignId" => $campaignId,
             "type" => "Template",
             "template" => [
@@ -161,6 +122,7 @@ if (!function_exists('getAgentPhoneNumber')) {
             return [
                 'whatsapp_number' => $agent->whatsapp_number,
                 'token' => $agent->notification_token,
+                'name' => $agent->name
             ];
         }
 
