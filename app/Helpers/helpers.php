@@ -45,7 +45,7 @@ if (!function_exists('sendInteraktMessage')) {
 }
 
 if (!function_exists('sendWhatsAppPay')) {
-    function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [],$totalAmount = 0, $orderId = "order67557",$address)
+    function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [],$totalAmount = 0, $orderId = "order67557",$address,$discountAmount)
     {
         $apiKey = env('INTERAKT_API_KEY');
         $campaignId = $campaignId ?? null;
@@ -80,8 +80,8 @@ if (!function_exists('sendWhatsAppPay')) {
                         "shipping_addresses" => [
                             $address
                         ],
-                        "subtotal" => $totalAmount,
-                        "discount" => 0,
+                        "subtotal" => $totalAmount + $discountAmount,
+                        "discount" => $discountAmount,
                         "tax" => 0,
                         "shipping" => 0,
                         "total_amount" => $totalAmount,
