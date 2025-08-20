@@ -48,6 +48,7 @@ class AndroidAgentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+
         if (!$orders) {
             return response()->json(['message' => 'Orders not found.', 'status' => false], 200);
         }
@@ -95,6 +96,8 @@ class AndroidAgentController extends Controller
             ? Carbon::now('Asia/Kolkata')
             : null;
         $order->save();
+
+        sendInteraktMessage($order->customer_phone, [],[],'sugarsurvey',"");
 
         return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
     }
