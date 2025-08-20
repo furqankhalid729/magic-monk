@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body style="margin:0px"
@@ -57,13 +58,18 @@
     </header>
     <div
         class=" flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
-        <main class="flex w-full flex-col">
-            <x-hero-section title="India’s 1st Guilt-Free Desserts Chain!" subtitle="Indulge Without the Guilt"
-                button-text="Shop Now" button-link="/shop"
-                right-text="Zero Sugar • Zero Maida • Zero Palm Oil • High Fiber • Low Calorie"
-                background-image="https://www.monkmagic.in/web/image/891-6c2db111/WhatsApp%20Image%202025-02-13%20at%2007.16.33.webp" />
+        <main class="flex-grow max-w-3xl mx-auto px-6 py-12">
+            <h1 class="text-3xl font-bold mb-6">About Us</h1>
+            <p>
+                We’re on a sweet revolution – minus the Sugar!
+                💡 "Why should healthy food taste boring? I wanted to change that!"
 
-            <x-product-grid />
+                A serial entrepreneur with a passion for health and wellness, Nikunj saw the massive gap in India’s
+                dessert industry—where "healthy" often meant compromising on taste.
+
+                He set out to create a brand where indulgence meets nutrition, ensuring that every scoop, sip, and bite
+                of MonkMagic is as satisfying as its sugar-loaded counterparts, minus the guilt.
+            </p>
         </main>
 
     </div>
@@ -71,7 +77,8 @@
         <div class="container mx-auto text-center">
             <!-- Row 1: Logo -->
             <div class="mb-4">
-                <img src="https://www.monkmagic.in/web/image/website/1/logo/MonkMagic%20-%20Zero%20Sugar%20Spreads%20%26%20Monk%20Fruit%20Sweetener?unique=c6d7da7" alt="Monk Magic Logo" class="mx-auto h-12">
+                <img src="https://www.monkmagic.in/web/image/website/1/logo/MonkMagic%20-%20Zero%20Sugar%20Spreads%20%26%20Monk%20Fruit%20Sweetener?unique=c6d7da7"
+                    alt="Monk Magic Logo" class="mx-auto h-12">
             </div>
 
             <!-- Row 2: Policy Links -->
