@@ -59,8 +59,8 @@ class ApiController extends Controller
 
         $distanceInKm = 0.2;
         $locations = Location::all();
-        $nearby = $locations->filter(function ($location) use ($lat, $lng, $distanceInKm) {
-            $earthRadius = 6371;
+        $nearby = $locations->map(function ($location) use ($lat, $lng) {
+            $earthRadius = 6371; // in km
 
             $dLat = deg2rad($location->latitude - $lat);
             $dLng = deg2rad($location->longitude - $lng);
@@ -72,8 +72,14 @@ class ApiController extends Controller
             $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
             $distance = $earthRadius * $c;
 
-            return $distance <= $distanceInKm;
-        })->values();
+            $location->distance = $distance; // attach distance to object
+            return $location;
+        })
+            ->filter(function ($location) use ($distanceInKm) {
+                return $location->distance <= $distanceInKm;
+            })
+            ->sortBy('distance') // sort by distance ascending
+            ->values();
 
         $names = $nearby->mapWithKeys(function ($item, $index) {
             return ["building_name" . ($index + 1) => $item->building_name];
@@ -87,10 +93,11 @@ class ApiController extends Controller
         ]);
     }
 
-    public function testPayment($number, $template){
+    public function testPayment($number, $template)
+    {
         $response = sendInteraktMessage(
             $number,
-            ['Hi User', 'Order #1234'], 
+            ['Hi User', 'Order #1234'],
             ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/fZSiDosqseLO/WhatsApp%20Image%202025-07-15%20at%2017.39.09.jpeg?se=2030-07-12T14%3A28%3A34Z&sp=rt&sv=2019-12-12&sr=b&sig=dQShOEauRkfq6xrdOzrP%2B4ZmWcwPDcwYEng43lpyQHw%3D'],
             $template
         );
