@@ -6,6 +6,7 @@ use Laravel\Telescope\Telescope;
 use App\Models\Location;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\Order;
 
 if (!function_exists('sendInteraktMessage')) {
     function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null)
@@ -109,7 +110,6 @@ if (!function_exists('sendWhatsAppPay')) {
         }
     }
 }
-
 if (!function_exists('getAgentPhoneNumber')) {
     function getAgentPhoneNumber($building)
     {
@@ -129,7 +129,6 @@ if (!function_exists('getAgentPhoneNumber')) {
         return null;
     }
 }
-
 if (!function_exists('createInteraktEvent')) {
     function createInteraktEvent($agentNumber, $eventName, $eventData = [])
     {
@@ -173,5 +172,16 @@ if (!function_exists('sendExpoPushNotification')) {
         ]);
 
         return $response->json();
+    }
+}
+
+if (!function_exists('updateReview')) {
+    function updateReview($reviewMessageId, $reviewText)
+    {
+        $order = Order::where('review_message_id', $reviewMessageId)->first();
+        if ($order) {
+            $order->review = $reviewText;
+            $order->save();
+        }
     }
 }

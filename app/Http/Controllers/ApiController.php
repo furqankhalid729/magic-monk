@@ -60,7 +60,7 @@ class ApiController extends Controller
         $distanceInKm = 0.2;
         $locations = Location::all();
         $nearby = $locations->map(function ($location) use ($lat, $lng) {
-            $earthRadius = 6371; // in km
+            $earthRadius = 6371;
 
             $dLat = deg2rad($location->latitude - $lat);
             $dLng = deg2rad($location->longitude - $lng);
@@ -72,13 +72,13 @@ class ApiController extends Controller
             $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
             $distance = $earthRadius * $c;
 
-            $location->distance = $distance; // attach distance to object
+            $location->distance = $distance;
             return $location;
         })
             ->filter(function ($location) use ($distanceInKm) {
                 return $location->distance <= $distanceInKm;
             })
-            ->sortBy('distance') // sort by distance ascending
+            ->sortBy('distance')
             ->values();
 
         $names = $nearby->mapWithKeys(function ($item, $index) {

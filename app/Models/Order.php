@@ -20,6 +20,8 @@ class Order extends Model
         'status',
         'address',
         'order_details',
+        'review',
+        'review_message_id'
     ];
 
     protected $casts = [

@@ -39,7 +39,7 @@ class LocationResource extends Resource
 
                 TextInput::make('building_name')->required(),
 
-                TextInput::make('google_map_url')->url()->nullable(),
+                TextInput::make('google_map_url')->url()->required(),
 
                 TextInput::make('latitude')->numeric()->nullable(),
                 TextInput::make('longitude')->numeric()->nullable(),
@@ -47,7 +47,7 @@ class LocationResource extends Resource
                 Select::make('agent_id')
                     ->relationship('agent', 'name')
                     ->searchable()
-                    ->nullable(),
+                    ->required(),
 
                 Toggle::make('agent_logged_in')->label('Agent Logged In'),
 

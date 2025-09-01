@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Interakt\Webhook;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AndroidAgentController;
+use App\Http\Controllers\ReferralController;
 
 Route::post('/webhook', [Webhook::class, 'handle'])
     ->name('interakt.webhook.handle');
@@ -25,3 +26,6 @@ Route::post('agent/token', [AndroidAgentController::class, 'storeToken'])
 
 Route::post('agent/order/status', [AndroidAgentController::class, 'updateOrderStatus'])
     ->name('agent.order.status');
+
+Route::get('referral/add', [ReferralController::class, 'add'])
+    ->name('referral.add');

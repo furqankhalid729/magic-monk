@@ -20,6 +20,12 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->orderByDesc('order_time');
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -34,6 +40,7 @@ class OrderResource extends Resource
             Forms\Components\TextInput::make('total_amount'),
             Forms\Components\DateTimePicker::make('delivered_on'),
             Forms\Components\TextInput::make('status'),
+            Forms\Components\TextInput::make('review'),
         ]);
     }
 

@@ -97,9 +97,12 @@ class AndroidAgentController extends Controller
             : null;
         $order->save();
 
-        sendInteraktMessage($order->customer_phone, [
+        $response = sendInteraktMessage($order->customer_phone, [
             (string) $order->order_id
         ],[],'feedback',"");
+
+        $order->review_message_id = $response['id'] ?? null;
+        $order->save();
 
         return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
     }

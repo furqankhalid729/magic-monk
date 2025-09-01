@@ -97,6 +97,25 @@ class Webhook extends Controller
                                 Log::info('Message context ID not found');
                             }
                         }
+                        else if($text == "Nice! Tasted like Normal"){
+                            $review_message_id = $request->input('data.message.message_context.id');
+                            updateReview($review_message_id, "nice");
+                            sendInteraktMessage(
+                                $request->input('data.message.message_context.from'),
+                                [],
+                                [],
+                                'referralrequest',
+                                null
+                            );
+                        }
+                        else if($text == "Found the Taste Average"){
+                            $review_message_id = $request->input('data.message.message_context.id');
+                            updateReview($review_message_id, "average");
+                        }
+                        else if($text == "Sorry, I didn't like it!"){
+                            $review_message_id = $request->input('data.message.message_context.id');
+                            updateReview($review_message_id, "bad");
+                        }
                         $message = "Text message received: \"$text\"";
                         break;
 
@@ -178,6 +197,7 @@ class Webhook extends Controller
                 if ($totalAmount <= 0) {
                     $payment_status = 'PAID';
                 }
+                //$payment_status = 'PAID';
                 $simplifiedItems = array_map(fn($item) => [
                     "name"             => $item["item_name"],
                     "quantity"         => $item["quantity"],

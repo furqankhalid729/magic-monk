@@ -11,5 +11,7 @@ export default {
         './resources/**/*.vue',
         './resources/**/*.jsx',
         './resources/**/*.tsx',
+        './resources/**/*.css',
+        './resources/css/**/*.css',
     ],
 }
