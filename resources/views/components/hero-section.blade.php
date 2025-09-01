@@ -12,7 +12,7 @@
                 {{ $title }}
             </h1>
             <p class="text-white text-lg">{{ $subtitle }}</p>
-            <a href="{{ $buttonLink }}"
+            <a
                 class="inline-block mt-4 px-6 py-3 bg-white text-black font-medium rounded-full shadow hover:bg-gray-100 transition">
                 {{ $buttonText }}
             </a>
