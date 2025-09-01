@@ -11,5 +11,6 @@ class Coupon extends Model
         'name',
         'rank',
         'status',
+        'expiration_date'
     ];
 }

@@ -12,7 +12,7 @@
     <header class="w-full bg-white dark:bg-[#111] border-b border-gray-200 dark:border-gray-800">
         <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-center space-x-8">
             <a href="/" class="text-sm font-medium text-gray-800 dark:text-gray-200 hover:underline">Home</a>
-            <a href="/products" class="text-sm font-medium text-gray-800 dark:text-gray-200 hover:underline">Products</a>
+            <a href="/#products" class="text-sm font-medium text-gray-800 dark:text-gray-200 hover:underline">Products</a>
             <a href="/privacy-policy" class="text-sm font-medium text-gray-800 dark:text-gray-200 hover:underline">Privacy Policy</a>
             <a href="/terms-and-conditions" class="text-sm font-medium text-gray-800 dark:text-gray-200 hover:underline">Terms & Conditions</a>
         </nav>

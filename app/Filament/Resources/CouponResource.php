@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\DatePicker;
+use Illuminate\Support\Facades\Date;
 
 class CouponResource extends Resource
 {
@@ -38,6 +40,12 @@ class CouponResource extends Resource
                 Forms\Components\TextInput::make('rank')
                     ->numeric()
                     ->default(0),
+
+                DatePicker::make('expiration_date')
+                    ->label('Expiration Date')
+                    ->required()
+                    ->minDate(Date::today())
+                    ->maxDate(Date::today()->addYears(1)),
 
                 Forms\Components\Toggle::make('status')
                     ->label('Active')

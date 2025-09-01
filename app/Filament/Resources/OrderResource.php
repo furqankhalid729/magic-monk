@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\Filter;
 
 class OrderResource extends Resource
 {
@@ -54,7 +56,16 @@ class OrderResource extends Resource
                 TextColumn::make('order_time')->dateTime()->sortable(),
             ])
             ->filters([
-                //
+                Filter::make('date_range')
+                ->form([
+                    DatePicker::make('fromDate')->label('From'),
+                    DatePicker::make('toDate')->label('To'),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when($data['fromDate'], fn (Builder $q, $date) => $q->whereDate('order_time', '>=', $date))
+                        ->when($data['toDate'], fn (Builder $q, $date) => $q->whereDate('order_time', '<=', $date));
+                }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
