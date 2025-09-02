@@ -81,6 +81,12 @@ class Webhook extends Controller
                                         'total_amount'   => $cacheData['total_amount'] ?? null,
                                         'address'        => $cacheData['address'] ?? null,
                                         'expo_token'     => data_get($cacheData, 'expo.token'),
+                                        'additional_info' => [
+                                            'paid_online' => $cacheData['additional_info']['paid_online'] ?? 0,
+                                            'to_collect'  => $cacheData['additional_info']['to_collect'] ?? 0,
+                                            'payment_status' => $cacheData['additional_info']['payment_status'] ?? null,
+                                            'first_time_discount' => $cacheData['additional_info']['first_time_discount'] ?? null
+                                        ]
                                     ]);
 
                                     foreach ($cacheData['order_items'] ?? [] as $item) {
@@ -100,13 +106,13 @@ class Webhook extends Controller
                         else if($text == "Nice! Tasted like Normal"){
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "nice");
-                            sendInteraktMessage(
-                                $request->input('data.message.message_context.from'),
-                                [],
-                                [],
-                                'referralrequest',
-                                null
-                            );
+                            // sendInteraktMessage(
+                            //     $request->input('data.message.message_context.from'),
+                            //     [],
+                            //     [],
+                            //     'referralrequest',
+                            //     null
+                            // );
                         }
                         else if($text == "Found the Taste Average"){
                             $review_message_id = $request->input('data.message.message_context.id');
@@ -237,6 +243,12 @@ class Webhook extends Controller
                             'address'       => $commonData['address'],
                             'order_items'   => $data['order_items'] ?? [],
                             'discount'      => $discountAmount,
+                            'additional_info' => [
+                                'paid_online' => $paidOnline,
+                                'to_collect'  => $toCollect,
+                                'payment_status' => $payment_status,
+                                'first_time_discount' => $firstTimeDiscount
+                            ],
                             'expo'          => [
                                 'token' => $token,
                                 'title' => "New Order Received #{$commonData['orderNumber']}",
@@ -284,6 +296,12 @@ class Webhook extends Controller
                         'message_id'    => $message['id'] ?? null,
                         'total_amount'  => $totalAmount,
                         'address'       => $commonData['address'],
+                        'additional_info' => [
+                            'paid_online' => $paidOnline,
+                            'to_collect'  => $toCollect,
+                            'payment_status' => $payment_status,
+                            'first_time_discount' => $firstTimeDiscount
+                        ]
                     ]);
 
                     foreach ($data['order_items'] ?? [] as $item) {

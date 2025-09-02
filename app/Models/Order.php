@@ -21,11 +21,13 @@ class Order extends Model
         'address',
         'order_details',
         'review',
-        'review_message_id'
+        'review_message_id',
+        'additional_info'
     ];
 
     protected $casts = [
         'order_details' => 'array',
+        'additional_info' => 'array',
     ];
 
     // Relationships
