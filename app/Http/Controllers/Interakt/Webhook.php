@@ -64,8 +64,8 @@ class Webhook extends Controller
                                             $cacheData['agent_number'] ?? null,
                                             $cacheData['order_id']
                                         ],
-                                        [],
-                                        'orderconfirmation',
+                                        ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
+                                        'orderconfirmationvideo',
                                         null
                                     );
 
@@ -280,8 +280,8 @@ class Webhook extends Controller
                             $agentMobile,
                             $commonData['orderNumber']
                         ],
-                        [],
-                        'orderconfirmation',
+                        ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
+                        'orderconfirmationvideo',
                         null
                     );
 
