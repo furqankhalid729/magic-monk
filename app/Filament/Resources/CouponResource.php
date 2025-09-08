@@ -41,11 +41,17 @@ class CouponResource extends Resource
                     ->numeric()
                     ->default(0),
 
-                DatePicker::make('expiration_date')
-                    ->label('Expiration Date')
-                    ->required()
-                    ->minDate(Date::today())
-                    ->maxDate(Date::today()->addYears(1)),
+                Forms\Components\TextInput::make('expiration_days')
+                    ->label('Expiration Days')
+                    ->numeric()
+                    ->minValue(1)
+                    ->required(),
+                
+                Forms\Components\TextInput::make('discount_amount')
+                    ->label('Discount Amount')
+                    ->numeric()
+                    ->minValue(0)
+                    ->required(),
 
                 Forms\Components\Toggle::make('status')
                     ->label('Active')

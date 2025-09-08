@@ -26,6 +26,3 @@ Route::post('agent/token', [AndroidAgentController::class, 'storeToken'])
 
 Route::post('agent/order/status', [AndroidAgentController::class, 'updateOrderStatus'])
     ->name('agent.order.status');
-
-Route::get('referral/add', [ReferralController::class, 'add'])
-    ->name('referral.add');

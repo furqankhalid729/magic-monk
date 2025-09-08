@@ -4,9 +4,11 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Laravel\Telescope\Telescope;
 use App\Models\Location;
+use App\Models\CustomerReferrals;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;;
 
 if (!function_exists('sendInteraktMessage')) {
     function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null)
@@ -46,7 +48,7 @@ if (!function_exists('sendInteraktMessage')) {
 }
 
 if (!function_exists('sendWhatsAppPay')) {
-    function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [],$totalAmount = 0, $orderId = "order67557",$address,$discountAmount)
+    function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [], $totalAmount = 0, $orderId = "order67557", $address, $discountAmount)
     {
         $apiKey = env('INTERAKT_API_KEY');
         $campaignId = $campaignId ?? null;
@@ -66,7 +68,7 @@ if (!function_exists('sendWhatsAppPay')) {
         ];
 
         $body = [
-            "fullPhoneNumber" => $phoneNumber,//"+919867871610",//
+            "fullPhoneNumber" => $phoneNumber, //"+919867871610",//
             "campaignId" => $campaignId,
             "type" => "Template",
             "template" => [
@@ -126,7 +128,11 @@ if (!function_exists('getAgentPhoneNumber')) {
             ];
         }
 
-        return null;
+        return [
+            'whatsapp_number' => '9867806668',
+            'token' => 'ExponentPushToken[KWTa_jDgmuBhoOVKmDzSUS]',
+            'name' => 'Monku'
+        ];
     }
 }
 if (!function_exists('createInteraktEvent')) {
@@ -167,7 +173,7 @@ if (!function_exists('sendExpoPushNotification')) {
             'title' => $title,
             'body' => $body,
             'data' => $data,
-             "sound"=> "notification",
+            "sound" => "notification",
             'priority' => 'high',
         ]);
 
@@ -183,5 +189,58 @@ if (!function_exists('updateReview')) {
             $order->review = $reviewText;
             $order->save();
         }
+    }
+}
+
+function getDiscountAmount($customerPhone)
+{
+    $coupon = DB::table('customer_coupons')
+        ->join('coupons', 'customer_coupons.coupon_handle', '=', 'coupons.handle')
+        ->where('customer_coupons.customer_phone', $customerPhone)
+        ->select('coupons.discount_amount')
+        ->first();
+
+    if ($coupon) {
+        DB::table('customer_coupons')->where('id', $coupon->id)->delete();
+        return $coupon->discount_amount;
+    }
+
+    return 0;
+}
+
+
+if (!function_exists('addReferrerCoupon')) {
+    function addReferrerCoupon($customer_number, $name)
+    {
+        $referral = CustomerReferrals::where('referee_number', $customer_number)
+            ->first();
+
+        if ($referral && !$referral->reward_given && !$referral->first_order_done) {
+
+            $coupon = DB::table('customer_coupons')
+                ->where('customer_phone', $customer_number)
+                ->where('coupon_handle', 'referee-code')
+                ->delete();
+
+            $referral->reward_given = true;
+            $referral->first_order_done = true;
+            $referral->save();
+
+            DB::table('customer_coupons')->insert([
+                'coupon_handle'   => 'referrer-code',
+                'customer_phone'  => $referral->referrer_number,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            sendInteraktMessage(
+                $referral->referrer_number,
+                [$name],
+                ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_sample/55yibnJAzFBw/WhatsApp%20Image%202025-08-30%20at%2000.34.07.jpeg?se=2030-08-23T19%3A04%3A34Z&sp=rt&sv=2019-12-12&sr=b&sig=k7SETZE%2B9toSkeVpIPI24x6m%2B8sCOYAZSp%2BoWQM1X9A%3D'],
+                'referralconversion'
+            );
+            return true;
+        }
+
+        return false;
     }
 }
