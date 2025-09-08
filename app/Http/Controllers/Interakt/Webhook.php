@@ -116,14 +116,14 @@ class Webhook extends Controller
                         else if($text == "Nice! Tasted like Normal"){
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "nice");
-                            sendInteraktMessage(
-                                $request->input('data.message.message_context.from'),
-                                //'+923474593912',
-                                [],
-                                [],
-                                'referralrequest',
-                                null
-                            );
+                            // sendInteraktMessage(
+                            //     $request->input('data.message.message_context.from'),
+                            //     //'+923474593912',
+                            //     [],
+                            //     [],
+                            //     'referralrequest',
+                            //     null
+                            // );
                         }
                         else if($text == "Found the Taste Average"){
                             $review_message_id = $request->input('data.message.message_context.id');
