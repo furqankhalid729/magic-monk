@@ -16,6 +16,13 @@ class Location extends Model
         'offer_live_until',
         'latitude',
         'longitude',
+
+        'reach_or_flats',
+        'road_name',
+        'sub_locality',
+        'city',
+        'state',
+        'pincode',
     ];
 
     public function agent()

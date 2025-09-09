@@ -37,26 +37,65 @@ class LocationResource extends Resource
                     ])
                     ->required(),
 
-                TextInput::make('building_name')->required(),
+                TextInput::make('building_name')
+                    ->maxLength(20)
+                    ->required(),
 
-                TextInput::make('google_map_url')->url()->required(),
+                TextInput::make('google_map_url')
+                    ->url()
+                    ->required(),
 
-                TextInput::make('latitude')->numeric()->nullable(),
-                TextInput::make('longitude')->numeric()->nullable(),
+                TextInput::make('latitude')
+                    ->numeric()
+                    ->nullable(),
+
+                TextInput::make('longitude')
+                    ->numeric()
+                    ->nullable(),
+
+                // 👉 New fields
+                TextInput::make('reach_or_flats')
+                    ->label('Reach / No. of Flats')
+                    ->numeric()
+                    ->nullable(),
+
+                TextInput::make('road_name')
+                    ->label('Road Name')
+                    ->required(),
+
+                TextInput::make('sub_locality')
+                    ->label('Sub Locality')
+                    ->nullable(),
+
+                TextInput::make('city')
+                    ->label('City')
+                    ->required(),
+
+                TextInput::make('state')
+                    ->label('State')
+                    ->required(),
+
+                TextInput::make('pincode')
+                    ->label('Pincode')
+                    ->required(),
 
                 Select::make('agent_id')
                     ->relationship('agent', 'name')
                     ->searchable()
                     ->required(),
 
-                Toggle::make('agent_logged_in')->label('Agent Logged In'),
+                Toggle::make('agent_logged_in')
+                    ->label('Agent Logged In'),
 
-                Toggle::make('is_offer_live')->label('Is Offer LIVE'),
+                Toggle::make('is_offer_live')
+                    ->label('Is Offer LIVE'),
 
-                DatePicker::make('offer_live_until')->label('Offer LIVE Until')->nullable(),
-
+                DatePicker::make('offer_live_until')
+                    ->label('Offer LIVE Until')
+                    ->nullable(),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
