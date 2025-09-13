@@ -235,7 +235,7 @@ if (!function_exists('addReferrerCoupon')) {
             sendInteraktMessage(
                 $referral->referrer_number,
                 [$name],
-                ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_sample/55yibnJAzFBw/WhatsApp%20Image%202025-08-30%20at%2000.34.07.jpeg?se=2030-08-23T19%3A04%3A34Z&sp=rt&sv=2019-12-12&sr=b&sig=k7SETZE%2B9toSkeVpIPI24x6m%2B8sCOYAZSp%2BoWQM1X9A%3D'],
+                [asset('storage/referralconverstion.jpeg')],
                 'referralconversion'
             );
             return true;
