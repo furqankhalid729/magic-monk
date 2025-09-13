@@ -99,7 +99,7 @@ class AndroidAgentController extends Controller
 
         $response = sendInteraktMessage($order->customer_phone, [
             (string) $order->order_id
-        ],[],'feedback',"");
+        ],[asset('storage/feedback.jpeg')],'feedback',"");
 
         $order->review_message_id = $response['id'] ?? null;
         $order->save();
