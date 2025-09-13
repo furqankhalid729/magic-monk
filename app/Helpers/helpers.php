@@ -197,7 +197,7 @@ function getDiscountAmount($customerPhone)
     $coupon = DB::table('customer_coupons')
         ->join('coupons', 'customer_coupons.coupon_handle', '=', 'coupons.handle')
         ->where('customer_coupons.customer_phone', $customerPhone)
-        ->select('coupons.discount_amount')
+        ->select('customer_coupons.id', 'coupons.discount_amount')
         ->first();
 
     if ($coupon) {
