@@ -53,7 +53,6 @@ class LocationResource extends Resource
                     ->numeric()
                     ->nullable(),
 
-                // 👉 New fields
                 TextInput::make('reach_or_flats')
                     ->label('Reach / No. of Flats')
                     ->numeric()
@@ -92,7 +91,18 @@ class LocationResource extends Resource
 
                 DatePicker::make('offer_live_until')
                     ->label('Offer LIVE Until')
-                    ->nullable(),
+                    ->minDate(now()->addDay())
+                    ->nullable()
+                    ->rules([
+                        function () {
+                            return function (string $attribute, $value, \Closure $fail) {
+                                $isOfferLive = request()->input('is_offer_live');
+                                if ($value && !$isOfferLive) {
+                                    $fail('The offer must be live when setting an expiration date.');
+                                }
+                            };
+                        },
+                    ]),
             ]);
     }
 
