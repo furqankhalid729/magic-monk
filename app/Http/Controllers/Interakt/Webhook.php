@@ -113,9 +113,9 @@ class Webhook extends Controller
                                 Log::info('Message context ID not found');
                             }
                         }
-                        else if($text == "Nice! Tasted like Normal"){
+                        else if($text == "5"){
                             $review_message_id = $request->input('data.message.message_context.id');
-                            updateReview($review_message_id, "nice");
+                            updateReview($review_message_id, "5");
                             // sendInteraktMessage(
                             //     $request->input('data.message.message_context.from'),
                             //     //'+923474593912',
@@ -125,13 +125,29 @@ class Webhook extends Controller
                             //     null
                             // );
                         }
-                        else if($text == "Found the Taste Average"){
+                        else if($text == "4"){
                             $review_message_id = $request->input('data.message.message_context.id');
-                            updateReview($review_message_id, "average");
+                            updateReview($review_message_id, "4");
+                            // sendInteraktMessage(
+                            //     $request->input('data.message.message_context.from'),
+                            //     //'+923474593912',
+                            //     [],
+                            //     [],
+                            //     'referralrequest',
+                            //     null
+                            // );
                         }
-                        else if($text == "Sorry, I didn't like it!"){
+                        else if($text == "3"){
                             $review_message_id = $request->input('data.message.message_context.id');
-                            updateReview($review_message_id, "bad");
+                            updateReview($review_message_id, "3");
+                        }
+                        else if($text == "2"){
+                            $review_message_id = $request->input('data.message.message_context.id');
+                            updateReview($review_message_id, "2");
+                        }
+                        else if($text == "1"){
+                            $review_message_id = $request->input('data.message.message_context.id');
+                            updateReview($review_message_id, "1");
                         }
                         else if($text == "Send Me My Referral Link"){
                             sendInteraktMessage(
