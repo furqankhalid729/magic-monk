@@ -23,3 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 sqlite_dump.sql
+*.sqlite
+*.sql
