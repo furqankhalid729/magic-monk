@@ -91,17 +91,7 @@ class LocationResource extends Resource
 
                 DatePicker::make('offer_live_until')
                     ->label('Offer LIVE Until')
-                    ->nullable()
-                    ->rules([
-                        function () {
-                            return function (string $attribute, $value, \Closure $fail) {
-                                $isOfferLive = request()->input('is_offer_live');
-                                if ($value && !$isOfferLive) {
-                                    $fail('The offer must be live when setting an expiration date.');
-                                }
-                            };
-                        },
-                    ]),
+                    ->nullable(),
             ]);
     }
 
