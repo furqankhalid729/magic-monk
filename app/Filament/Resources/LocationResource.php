@@ -91,7 +91,6 @@ class LocationResource extends Resource
 
                 DatePicker::make('offer_live_until')
                     ->label('Offer LIVE Until')
-                    ->minDate(now()->addDay())
                     ->nullable()
                     ->rules([
                         function () {
