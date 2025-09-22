@@ -236,7 +236,12 @@ class Webhook extends Controller
                 $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
 
                 $itemList = collect($data['order_items'] ?? [])->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")->implode(' | ');
-                $discountAmount = $firstTimeDiscount ? 79 : getDiscountAmount($commonData['customerPhone']);
+                if($commonData['building'] == 'Silver Utopia'){
+                    $discountAmount = 50;
+                }
+                else{
+                    $discountAmount = $firstTimeDiscount ? 79 : getDiscountAmount($commonData['customerPhone']);
+                }
                 $totalAmount = max(0, $data['total_amount'] - $discountAmount);
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;

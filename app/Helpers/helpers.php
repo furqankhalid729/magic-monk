@@ -8,7 +8,8 @@ use App\Models\CustomerReferrals;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
-use Illuminate\Support\Facades\DB;;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 if (!function_exists('sendInteraktMessage')) {
     function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null)
@@ -208,6 +209,72 @@ function getDiscountAmount($customerPhone)
     return 0;
 }
 
+function nextWorkingDay(Carbon $date)
+{
+    $next = $date->copy()->addDay();
+
+    // Skip weekends
+    while (in_array($next->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY])) {
+        $next->addDay();
+    }
+
+    return $next;
+}
+
+// function getDiscountAmount($customerPhone)
+// {
+//     $today = now()->startOfDay();
+
+//     // Fetch all order dates for this customer (latest first)
+//     $orders = DB::table('orders')
+//         ->where('customer_phone', $customerPhone)
+//         ->orderByDesc('order_date')
+//         ->pluck('order_date')
+//         ->map(fn($d) => Carbon::parse($d)->startOfDay())
+//         ->toArray();
+
+//     if (empty($orders)) {
+//         return 79;
+//     }
+
+//     // Start streak calculation
+//     $streak = 1;
+//     $expectedDate = $today;
+
+//     // Walk through orders until streak breaks
+//     foreach ($orders as $orderDate) {
+//         if ($orderDate->equalTo($expectedDate)) {
+//             // matched, streak continues
+//             $streak++;
+//             $expectedDate = nextWorkingDay($orderDate);
+//         } else {
+//             // streak breaks
+//             break;
+//         }
+//     }
+//     // Apply discounts
+//     if ($streak == 1) {
+//         return 79; // first day
+//     } elseif ($streak == 2) {
+//         return 50; // 2nd consecutive day
+//     } elseif ($streak == 3) {
+//         return 40; // 3rd consecutive day
+//     } else {
+//         // streak > 3 → use coupon
+//         $coupon = DB::table('customer_coupons')
+//             ->join('coupons', 'customer_coupons.coupon_handle', '=', 'coupons.handle')
+//             ->where('customer_coupons.customer_phone', $customerPhone)
+//             ->select('customer_coupons.id', 'coupons.discount_amount')
+//             ->first();
+
+//         if ($coupon) {
+//             DB::table('customer_coupons')->where('id', $coupon->id)->delete();
+//             return $coupon->discount_amount;
+//         }
+
+//         return 0;
+//     }
+// }
 
 if (!function_exists('addReferrerCoupon')) {
     function addReferrerCoupon($customer_number, $name)
