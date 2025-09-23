@@ -236,7 +236,7 @@ class Webhook extends Controller
                 $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
 
                 $itemList = collect($data['order_items'] ?? [])->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")->implode(' | ');
-                if($commonData['building'] == 'Silver Utopia'){
+                if($commonData['building'] == 'Removed Building test'){
                     $discountAmount = 50;
                 }
                 else{
