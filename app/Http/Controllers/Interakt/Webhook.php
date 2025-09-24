@@ -106,14 +106,17 @@ class Webhook extends Controller
                                             'amount'    => $item['amount'],
                                         ]);
                                     }
-                                    addReferrerCoupon($cacheData['customer_phone'],$cacheData['customer_name']);
+                                    addReferrerCoupon($cacheData['customer_phone'], $cacheData['customer_name']);
                                     Cache::forget($messageContextId);
                                 }
                             } else {
                                 Log::info('Message context ID not found');
                             }
-                        }
-                        else if($text == "5"){
+                        } else if ($text == "₹15 Delivery Fee OK") {
+                            // $response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, $firstTimeDiscount);
+                            // Log::info('WhatsApp Pay response', ['response' => $response]);
+
+                        } else if ($text == "5") {
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "5");
                             // sendInteraktMessage(
@@ -124,8 +127,7 @@ class Webhook extends Controller
                             //     'referralrequest',
                             //     null
                             // );
-                        }
-                        else if($text == "4"){
+                        } else if ($text == "4") {
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "4");
                             // sendInteraktMessage(
@@ -136,20 +138,16 @@ class Webhook extends Controller
                             //     'referralrequest',
                             //     null
                             // );
-                        }
-                        else if($text == "3"){
+                        } else if ($text == "3") {
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "3");
-                        }
-                        else if($text == "2"){
+                        } else if ($text == "2") {
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "2");
-                        }
-                        else if($text == "1"){
+                        } else if ($text == "1") {
                             $review_message_id = $request->input('data.message.message_context.id');
                             updateReview($review_message_id, "1");
-                        }
-                        else if($text == "Send Me My Referral Link"){
+                        } else if ($text == "Send Me My Referral Link") {
                             sendInteraktMessage(
                                 $request->input('data.customer.channel_phone_number'),
                                 [$request->input('data.customer.phone_number')],
@@ -157,16 +155,15 @@ class Webhook extends Controller
                                 'referraloffer',
                                 null
                             );
-                        }
-                        else if (Str::contains($text, 'I Would Like to Try the Magic Now (Ref:')){
+                        } else if (Str::contains($text, 'I Would Like to Try the Magic Now (Ref:')) {
                             preg_match('/\(Ref:\s*(\d+)\)/', $text, $matches);
                             $referrerCode = $matches[1] ?? null;
                             $refereePhone = $request->input('data.customer.phone_number');
 
                             if ($referrerCode && $refereePhone) {
                                 $this->referralService->createReferral([
-                                    'referrerPhone' => "+91".$referrerCode,
-                                    'refereePhone'  => "+91".$refereePhone,
+                                    'referrerPhone' => "+91" . $referrerCode,
+                                    'refereePhone'  => "+91" . $refereePhone,
                                 ]);
                             }
                         }
@@ -236,10 +233,9 @@ class Webhook extends Controller
                 $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
 
                 $itemList = collect($data['order_items'] ?? [])->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")->implode(' | ');
-                if($commonData['building'] == 'Removed Building test'){
+                if ($commonData['building'] == 'Removed Building test') {
                     $discountAmount = 50;
-                }
-                else{
+                } else {
                     $discountAmount = $firstTimeDiscount ? 79 : getDiscountAmount($commonData['customerPhone']);
                 }
                 $totalAmount = max(0, $data['total_amount'] - $discountAmount);

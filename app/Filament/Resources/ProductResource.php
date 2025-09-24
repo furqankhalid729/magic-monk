@@ -26,12 +26,17 @@ class ProductResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')->required(),
-                TextInput::make('catalog_product_id')->required(),
+                TextInput::make('sku')->required(),
                 TextInput::make('price')
                     ->numeric()
                     ->rules(['numeric', 'min:0'])
-                    ->prefix('₹') // or $ depending on your currency
+                    ->prefix('₹')
                     ->required(),
+                TextInput::make('inventory')
+                    ->numeric()
+                    ->rules(['integer', 'min:0'])
+                    ->required(),
+                TextInput::make('image')->url()->nullable(),
             ]);
     }
 
@@ -44,14 +49,18 @@ class ProductResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('catalog_product_id')
-                    ->label('Catalog ID')
+                TextColumn::make('sku')
+                    ->label('SKU')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('price')
                     ->label('Price')
                     ->money('INR', true) 
+                    ->sortable(),
+
+                TextColumn::make('inventory')
+                    ->label('Inventory')
                     ->sortable(),
             ])
             ->filters([

@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Illuminate\Support\Str;
 
 class AgentResource extends Resource
 {
@@ -44,6 +45,10 @@ class AgentResource extends Resource
                     'active' => 'Active',
                     'inactive' => 'Inactive',
                 ]),
+                Select::make('source_type')->options([
+                    'agent' => 'Agent',
+                    'store' => 'Store',
+                ]),
                 TextInput::make('source_pos'),
             ]);
     }
@@ -66,6 +71,11 @@ class AgentResource extends Resource
 
                 TextColumn::make('whatsapp_number')
                     ->label('WhatsApp')
+                    ->searchable(),
+
+                TextColumn::make('source_type')
+                    ->label('Source Type')
+                    ->formatStateUsing(fn ($state) => Str::title($state))
                     ->searchable(),
 
                 BadgeColumn::make('status')
