@@ -42,8 +42,10 @@ return new class extends Migration
                 ->constrained('inventory_transfers')
                 ->onDelete('cascade');
 
-            $table->foreignId('product_id')
-                ->constrained('products')
+            $table->unsignedInteger('product_id');
+            $table->foreign('product_id')
+                ->references('id')
+                ->on('products')
                 ->onDelete('cascade');
 
             $table->integer('quantity');
