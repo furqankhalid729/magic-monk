@@ -11,28 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_transfers', function (Blueprint $table) {
-            $table->id();
+        // Schema::create('inventory_transfers', function (Blueprint $table) {
+        //     $table->id();
 
-            // From which agent (could be store or agent)
-            $table->unsignedInteger('source_agent_id')->nullable();
-            $table->foreign('source_agent_id')
-                ->references('id')
-                ->on('agents')
-                ->nullOnDelete();
+        //     // From which agent (could be store or agent)
+        //     $table->unsignedInteger('source_agent_id')->nullable();
+        //     $table->foreign('source_agent_id')
+        //         ->references('id')
+        //         ->on('agents')
+        //         ->nullOnDelete();
 
-            $table->unsignedInteger('destination_agent_id')->nullable();
-            $table->foreign('destination_agent_id')
-                ->references('id')
-                ->on('agents')
-                ->nullOnDelete();
+        //     $table->unsignedInteger('destination_agent_id')->nullable();
+        //     $table->foreign('destination_agent_id')
+        //         ->references('id')
+        //         ->on('agents')
+        //         ->nullOnDelete();
 
-            // borrow, return, buy, adjustment
-            $table->enum('transfer_type', ['borrow', 'return', 'buy', 'adjustment']);
+        //     // borrow, return, buy, adjustment
+        //     $table->enum('transfer_type', ['borrow', 'return', 'buy', 'adjustment']);
 
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+        //     $table->text('notes')->nullable();
+        //     $table->timestamps();
+        // });
 
         // Items inside each transfer
         Schema::create('transfer_items', function (Blueprint $table) {
