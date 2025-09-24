@@ -15,15 +15,16 @@ return new class extends Migration
             $table->id();
 
             // From which agent (could be store or agent)
-            $table->foreignId('source_agent_id')
-                ->nullable()
-                ->constrained('agents')
+            $table->unsignedInteger('source_agent_id')->nullable();
+            $table->foreign('source_agent_id')
+                ->references('id')
+                ->on('agents')
                 ->nullOnDelete();
 
-            // To which agent (could be store or agent)
-            $table->foreignId('destination_agent_id')
-                ->nullable()
-                ->constrained('agents')
+            $table->unsignedInteger('destination_agent_id')->nullable();
+            $table->foreign('destination_agent_id')
+                ->references('id')
+                ->on('agents')
                 ->nullOnDelete();
 
             // borrow, return, buy, adjustment
