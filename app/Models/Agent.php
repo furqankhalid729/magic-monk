@@ -17,6 +17,7 @@ class Agent extends Model
         'city',
         'status',
         'source_pos',
+        'source_type'
     ];
 
     public function locations()

@@ -15,6 +15,12 @@ Route::get('/check-meta-data', [ApiController::class, 'checkMetaData'])
 Route::get('/get-locations', [ApiController::class, 'getNearbyLocations'])
     ->name('api.getLocations');
 
+Route::get('/get-stores', [ApiController::class, 'getStores'])
+    ->name('api.getStores');
+
+Route::get('/get-products', [ApiController::class, 'getProducts'])
+    ->name('api.getProducts');
+
 Route::post('agent/login', [AndroidAgentController::class, 'login'])
     ->name('agent.login');
 

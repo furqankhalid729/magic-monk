@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Location;
+use App\Models\Agent;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+
 
 class ApiController extends Controller
 {
@@ -118,4 +121,17 @@ class ApiController extends Controller
 
         return response()->json($response);
     }
+
+    public function getStores()
+    {
+        $stores = Agent::where('source_type','store')->select('id', 'name')->get();
+        return response()->json($stores);
+    }
+
+    public function getProducts()
+    {
+        $products = Product::all();
+        return response()->json($products);
+    }
+
 }
