@@ -5,30 +5,27 @@ use App\Http\Controllers\Interakt\Webhook;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AndroidAgentController;
 use App\Http\Controllers\ReferralController;
+use App\Http\Controllers\InventoryTransferController;
 
 Route::post('/webhook', [Webhook::class, 'handle'])
     ->name('interakt.webhook.handle');
 
-Route::get('/check-meta-data', [ApiController::class, 'checkMetaData'])
-    ->name('api.checkMetaData');
+// API Routes Group
+Route::controller(ApiController::class)->group(function () {
+    Route::get('/check-meta-data', 'checkMetaData')->name('api.checkMetaData');
+    Route::get('/get-locations', 'getNearbyLocations')->name('api.getLocations');
+    Route::get('/get-stores', 'getStores')->name('api.getStores');
+    Route::get('/get-products', 'getProducts')->name('api.getProducts');
+});
 
-Route::get('/get-locations', [ApiController::class, 'getNearbyLocations'])
-    ->name('api.getLocations');
+Route::controller(InventoryTransferController::class)->group(function () {
+    Route::post('/inventory-transfer', 'store')->name('api.inventoryTransfer');
+});
 
-Route::get('/get-stores', [ApiController::class, 'getStores'])
-    ->name('api.getStores');
-
-Route::get('/get-products', [ApiController::class, 'getProducts'])
-    ->name('api.getProducts');
-
-Route::post('agent/login', [AndroidAgentController::class, 'login'])
-    ->name('agent.login');
-
-Route::get('agent/order', [AndroidAgentController::class, 'order'])
-    ->name('agent.order');
-
-Route::post('agent/token', [AndroidAgentController::class, 'storeToken'])
-    ->name('agent.token');
-
-Route::post('agent/order/status', [AndroidAgentController::class, 'updateOrderStatus'])
-    ->name('agent.order.status');
+// Agent Routes Group
+Route::prefix('agent')->controller(AndroidAgentController::class)->group(function () {
+    Route::post('login', 'login')->name('agent.login');
+    Route::get('order', 'order')->name('agent.order');
+    Route::post('token', 'storeToken')->name('agent.token');
+    Route::post('order/status', 'updateOrderStatus')->name('agent.order.status');
+});
