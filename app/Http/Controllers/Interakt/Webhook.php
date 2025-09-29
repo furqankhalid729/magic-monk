@@ -233,12 +233,21 @@ class Webhook extends Controller
                 $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
 
                 $itemList = collect($data['order_items'] ?? [])->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")->implode(' | ');
-                if ($commonData['building'] == 'Removed Building test') {
-                    $discountAmount = 50;
+
+                $liveOffer = $location?->liveAdditionalOffers()->first();
+                Log::info('Live offer for location', ['location' => $location->building_name ?? null, 'liveOffer' => $liveOffer]);
+                if ($liveOffer) {
+                    if ($liveOffer->discount_type === 'percentage') {
+                        $discountAmount = ($data['total_amount'] * $liveOffer->discount_value) / 100;
+                    } elseif ($liveOffer->discount_type === 'fixed') {
+                        $discountAmount = (float) $liveOffer->discount_value;
+                    }
                 } else {
                     $discountAmount = $firstTimeDiscount ? 79 : getDiscountAmount($commonData['customerPhone']);
                 }
+                $discountAmount = floor($discountAmount);
                 $totalAmount = max(0, $data['total_amount'] - $discountAmount);
+                //$totalAmount = ceil($totalAmount);
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
 

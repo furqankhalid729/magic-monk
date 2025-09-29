@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use App\Models\Location;
+use App\Models\AdditionalOffer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -32,6 +33,12 @@ class CheckLocationOffer implements ShouldQueue
                 $location->is_offer_live = false;
                 $location->save();
             }
+        }
+        $offers = AdditionalOffer::whereNotNull('expire_date')
+            ->where('expire_date', '<', $now->toDateString())
+            ->get();
+        foreach ($offers as $offer) {
+            $offer->delete();
         }
     }
 }

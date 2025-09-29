@@ -29,4 +29,14 @@ class Location extends Model
     {
         return $this->belongsTo(Agent::class);
     }
+
+    public function additionalOffers()
+    {
+        return $this->hasMany(AdditionalOffer::class);
+    }
+
+    public function liveAdditionalOffers()
+    {
+        return $this->hasMany(AdditionalOffer::class)->active();
+    }
 }

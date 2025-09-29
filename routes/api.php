@@ -7,6 +7,7 @@ use App\Http\Controllers\AndroidAgentController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\InventoryTransferController;
 
+
 Route::post('/webhook', [Webhook::class, 'handle'])
     ->name('interakt.webhook.handle');
 
