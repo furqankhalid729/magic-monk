@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('additional_offers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('location_id');
+            $table->unsignedInteger('location_id');
             $table->foreign('location_id')->references('id')->on('locations')->onDelete('cascade');
             $table->enum('discount_type', ['percentage', 'fixed'])->default('percentage');
             $table->decimal('discount_value', 8, 2);
