@@ -48,10 +48,17 @@ class Webhook extends Controller
                     case 'Text':
                         $text = $request->input('data.message.message');
                         if ($text === "I'll Pay UPI on Delivery") {
+                            $data = $request->input('data');
+                            Log::info('UPI on Delivery confirmation received', $data);
                             $messageContextId = data_get($request->input('data'), 'message.message_context.id');
                             if ($messageContextId) {
                                 Log::info('Message context ID found: ' . $messageContextId);
                                 $cacheData = Cache::get($messageContextId);
+                                $residentialFlow = false;
+                                $key = "sample-{$data['customer']['phone_number']}";
+                                if (Cache::has($key)) {
+                                    $residentialFlow = true;
+                                }
 
                                 if ($cacheData) {
                                     if (!empty($cacheData['expo']['token'])) {
@@ -82,7 +89,7 @@ class Webhook extends Controller
                                         'customer_name'  => $cacheData['customer_name'] ?? null,
                                         'order_id'       => $cacheData['order_id'] ?? null,
                                         'customer_phone' => $cacheData['customer_phone'] ?? null,
-                                        'building'       => $cacheData['building'] ?? null,
+                                        'building'       => $residentialFlow ? $cacheData['ResiBuilding'] : $cacheData['building'] ?? null,
                                         'order_time'     => $cacheData['order_time'] ?? now('Asia/Kolkata'),
                                         'delivery_time'  => $cacheData['delivery_time'] ?? now('Asia/Kolkata')->addMinutes(5),
                                         'agent_number'   => $cacheData['agent_number'] ?? null,
@@ -443,12 +450,12 @@ class Webhook extends Controller
             'orderNumber'   => $data['id'],
             'name'          => $data['customer_traits']['RealName'] ?? $data['customer_traits']['name'] ?? 'Customer',
             'address'       => $data['customer_traits']['FullAddress'] ?? 'N/A',
-            'building'      => $data['customer_traits']['building'] ?? 'N/A',
+            'building'      => $data['customer_traits']['ResiBuilding'] ?? 'N/A',
             'customerPhone' => "+91" . ($data['customer_phone_number']['phone_number'] ?? 'N/A'),
             'headerImage'   => asset('storage/payment.jpeg'),
             'product'       => $data['customer_traits']['FreeIcecream'] ?? 'N/A',
         ];
-        $location = Location::where('building_name', $commonData['building'])->first();
+        $location = Location::where('building_name', $commonData['ResiBuilding'])->first();
         $agentDetails = getAgentPhoneNumber($commonData['building'] ?? '');
         $token = $agentDetails['token'] ?? null;
         $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
@@ -498,7 +505,7 @@ class Webhook extends Controller
         $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
 
         if ($payment_status === 'PENDING') {
-            $response = sendWhatsAppPay( $commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
+            $response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
 
             $cacheKey = $response['id'] ?? null;
