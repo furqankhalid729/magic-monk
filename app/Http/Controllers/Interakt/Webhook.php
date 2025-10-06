@@ -89,7 +89,7 @@ class Webhook extends Controller
                                         'customer_name'  => $cacheData['customer_name'] ?? null,
                                         'order_id'       => $cacheData['order_id'] ?? null,
                                         'customer_phone' => $cacheData['customer_phone'] ?? null,
-                                        'building'       => $residentialFlow ? $cacheData['ResiBuilding'] : $cacheData['building'] ?? null,
+                                        'building'       => $cacheData['building'] ?? null,
                                         'order_time'     => $cacheData['order_time'] ?? now('Asia/Kolkata'),
                                         'delivery_time'  => $cacheData['delivery_time'] ?? now('Asia/Kolkata')->addMinutes(5),
                                         'agent_number'   => $cacheData['agent_number'] ?? null,
