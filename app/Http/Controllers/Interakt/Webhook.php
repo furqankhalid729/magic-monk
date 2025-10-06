@@ -455,7 +455,7 @@ class Webhook extends Controller
             'headerImage'   => asset('storage/payment.jpeg'),
             'product'       => $data['customer_traits']['FreeIcecream'] ?? 'N/A',
         ];
-        $location = Location::where('building_name', $commonData['ResiBuilding'])->first();
+        $location = Location::where('building_name', $commonData['building'])->first();
         $agentDetails = getAgentPhoneNumber($commonData['building'] ?? '');
         $token = $agentDetails['token'] ?? null;
         $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
