@@ -434,6 +434,10 @@ class Webhook extends Controller
                     }
                     addReferrerCoupon($commonData['customerPhone'], $commonData['name']);
                 }
+
+                if($liveOffer && $firstTimeDiscount){
+                    addCustomerCoupon($commonData['customerPhone'], $discountAmount);
+                }
                 break;
         }
 

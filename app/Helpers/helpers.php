@@ -311,3 +311,12 @@ if (!function_exists('addReferrerCoupon')) {
         return false;
     }
 }
+
+if(!function_exists('addCustomerCoupon')) {
+    function addCustomerCoupon($customerPhone, $discountAmount) {
+        DB::table('customer_coupons')->insert([
+            'customer_phone' => $customerPhone,
+            'coupon_handle' => "50-off"
+        ]);
+    }
+}
