@@ -45,6 +45,59 @@ class Webhook extends Controller
                         }
                         break;
 
+                    case 'InteractiveButtonReply':
+                        $text = $request->input('data.message.message');
+                        $decoded = json_decode($text, true);
+                        $title = $decoded['button_reply']['title'] ?? null;
+                        if ($title == "OK Please Deliver It") {
+                            $data = $request->input('data');
+                            Log::info('Delivery fee confirmation received', $data);
+                            $commonData = [
+                                'orderNumber'   => str_pad(random_int(0, 9999999), 7, '0', STR_PAD_LEFT),
+                                'name'          => $data['customer']['traits']['RealName'] ?? $data['customer']['traits']['name'] ?? 'Customer',
+                                'address'       => $data['customer']['traits']['FullAddress'] ?? 'N/A',
+                                'building'      => $data['customer']['traits']['building'] ?? 'N/A',
+                                'customerPhone' => "+91" . ($data['customer']['phone_number'] ?? 'N/A'),
+                                'product'       => $data['customer']['traits']['FreeIcecream'],
+                                'headerImage'   => asset('storage/payment.jpeg'),
+                            ];
+                            $location = Location::where('building_name', $commonData['building'])->first();
+
+                            $agentDetails = getAgentPhoneNumber($commonData['building'] ?? '');
+                            $token = $agentDetails['token'] ?? null;
+                            $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
+
+                            $order = Order::create([
+                                'customer_name' => $commonData['name'],
+                                'order_id'      => $commonData['orderNumber'],
+                                'customer_phone' => $commonData['customerPhone'],
+                                'building'      => $commonData['building'],
+                                'order_time'    => Carbon::now('Asia/Kolkata'),
+                                'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
+                                'agent_number'  => $agentMobile,
+                                'message_id'    => $message['id'] ?? null,
+                                'total_amount'  => 9,
+                                'address'       => $commonData['address'],
+                                'additional_info' => [
+                                    'paid_online' => 0,
+                                    'to_collect'  => 9,
+                                    'payment_status' => "pending",
+                                    'first_time_discount' => false
+                                ]
+                            ]);
+
+                            OrderItem::create([
+                                'order_id'  => $order->id,
+                                'item_name' => $commonData['product'] ?? 'N/A',
+                                'price'     => 0,
+                                'quantity'  => 1,
+                                'amount'    => 0,
+                            ]);
+                            $title = "New Order Received #{$commonData['orderNumber']}";
+                            $body  = "{$commonData['name']} from {$commonData['building']}\nCollect: ₹9";
+                            $message = sendExpoPushNotification($token, $title, $body, $data);
+                        }
+
                     case 'Text':
                         $text = $request->input('data.message.message');
                         if ($text === "I'll Pay UPI on Delivery") {
@@ -148,11 +201,11 @@ class Webhook extends Controller
                                 'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
                                 'agent_number'  => $agentMobile,
                                 'message_id'    => $message['id'] ?? null,
-                                'total_amount'  => 15,
+                                'total_amount'  => 9,
                                 'address'       => $commonData['address'],
                                 'additional_info' => [
                                     'paid_online' => 0,
-                                    'to_collect'  => 15,
+                                    'to_collect'  => 9,
                                     'payment_status' => "pending",
                                     'first_time_discount' => false
                                 ]
@@ -166,7 +219,7 @@ class Webhook extends Controller
                                 'amount'    => 0,
                             ]);
                             $title = "New Order Received #{$commonData['orderNumber']}";
-                            $body  = "{$commonData['name']} from {$commonData['building']}\nCollect: ₹15";
+                            $body  = "{$commonData['name']} from {$commonData['building']}\nCollect: ₹9";
                             $message = sendExpoPushNotification($token, $title, $body, $data);
                         } else if ($text == "OK - I'll Pick it up Myself") {
                         } else if ($text == "I'll Pick Up Myself") {
