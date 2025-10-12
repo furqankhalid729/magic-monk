@@ -5,6 +5,7 @@ use GuzzleHttp\Psr7\Request;
 use Laravel\Telescope\Telescope;
 use App\Models\Location;
 use App\Models\CustomerReferrals;
+use App\Models\WhatsAppPayReminder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
@@ -319,4 +320,13 @@ if(!function_exists('addCustomerCoupon')) {
             'coupon_handle' => "50-off"
         ]);
     }
+}
+
+if(!function_exists('updateReminderStatus')) {
+    function updateReminderStatus($phoneNumber) {
+        WhatsAppPayReminder::where('phone_number', $phoneNumber)
+            ->where('is_sent', false)
+            ->update(['is_sent' => true]);
+    }
+    
 }

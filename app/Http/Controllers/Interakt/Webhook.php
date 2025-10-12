@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Location;
 use Illuminate\Support\Str;
 use App\Services\ReferralService;
+use App\Models\WhatsAppPayReminder;
 
 class Webhook extends Controller
 {
@@ -26,13 +27,13 @@ class Webhook extends Controller
     {
         $topic = $request->input('type');
         $message = 'Unknown webhook topic.';
-
+        //updateReminderStatus("+91".$request->input('data.customer.phone_number'));
         switch ($topic) {
             case 'message_received':
                 $messageType = $request->input('data.message.message_content_type');
                 $customer = $request->input('data.customer');
                 $traits = $customer['traits'] ?? [];
-
+                updateReminderStatus("+91" . $request->input('data.customer.phone_number'));
                 switch ($messageType) {
                     case 'Location':
                         $locationData = json_decode($request->input('data.message.message'), true);
@@ -526,11 +527,19 @@ class Webhook extends Controller
                 $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
 
                 if ($payment_status === 'PENDING') {
-                    $response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, $firstTimeDiscount);
+                    $response = sendInteraktMessage(
+                        $commonData['customerPhone'],
+                        $new_payload,
+                        [$commonData['headerImage']],
+                        'backup_paymentfm',
+                        null
+                    );
+                    //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, $firstTimeDiscount);
                     Log::info('WhatsApp Pay response', ['response' => $response]);
 
                     $cacheKey = $response['id'] ?? null;
                     if ($cacheKey) {
+
                         $orderData = [
                             'customer_name' => $commonData['name'],
                             'order_id'      => $commonData['orderNumber'],
@@ -556,7 +565,15 @@ class Webhook extends Controller
                                 'data'  => $data
                             ],
                         ];
+
                         Cache::put($cacheKey, $orderData, now()->addHours(6));
+                        WhatsAppPayReminder::create([
+                            'phone_number' => $commonData['customerPhone'],
+                            'message_id'   => $response['id'],
+                            'is_sent'      => false,
+                            'order_data'   => $orderData
+                        ]);
+
                         $message = 'Order data cached successfully.';
                     } else {
                         Log::error('Cache key not found in WhatsApp Pay response', ['response' => $response]);
@@ -689,7 +706,14 @@ class Webhook extends Controller
         $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
 
         if ($payment_status === 'PENDING') {
-            $response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
+            $response = sendInteraktMessage(
+                $commonData['customerPhone'],
+                $new_payload,
+                [$commonData['headerImage']],
+                'backup_paymentfm',
+                null
+            );
+            //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
 
             $cacheKey = $response['id'] ?? null;
@@ -720,6 +744,12 @@ class Webhook extends Controller
                     ],
                 ];
                 Cache::put($cacheKey, $orderData, now()->addHours(6));
+                WhatsAppPayReminder::create([
+                    'phone_number' => $commonData['customerPhone'],
+                    'message_id'   => $response['id'],
+                    'is_sent'      => false,
+                    'order_data'   => $orderData
+                ]);
                 $message = 'Order data cached successfully.';
             } else {
                 Log::error('Cache key not found in WhatsApp Pay response', ['response' => $response]);
@@ -840,7 +870,14 @@ class Webhook extends Controller
         $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
 
         if ($payment_status === 'PENDING') {
-            $response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
+            $response = sendInteraktMessage(
+                $commonData['customerPhone'],
+                $new_payload,
+                [$commonData['headerImage']],
+                'backup_paymentfm',
+                null
+            );
+            //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
 
             $cacheKey = $response['id'] ?? null;
@@ -871,6 +908,12 @@ class Webhook extends Controller
                     ],
                 ];
                 Cache::put($cacheKey, $orderData, now()->addHours(6));
+                WhatsAppPayReminder::create([
+                    'phone_number' => $commonData['customerPhone'],
+                    'message_id'   => $response['id'],
+                    'is_sent'      => false,
+                    'order_data'   => $orderData
+                ]);
                 $message = 'Order data cached successfully.';
             } else {
                 Log::error('Cache key not found in WhatsApp Pay response', ['response' => $response]);
