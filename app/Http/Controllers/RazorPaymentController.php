@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Razorpay\Api\Api;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class RazorPaymentController extends Controller
 {
@@ -32,14 +33,14 @@ class RazorPaymentController extends Controller
 
     public function createQr(Request $request)
     {
-        \Log::info('Creating Razorpay QR Code');
+        Log::info('Creating Razorpay QR Code');
         
         // Check if Razorpay credentials are configured
         $razorpayKey = config('services.razorpay.key');
         $razorpaySecret = config('services.razorpay.secret');
         
         if (empty($razorpayKey) || empty($razorpaySecret)) {
-            \Log::error('Razorpay credentials not configured');
+            Log::error('Razorpay credentials not configured');
             return response()->json([
                 'status' => 'error',
                 'message' => 'Razorpay credentials not configured',
@@ -62,12 +63,12 @@ class RazorPaymentController extends Controller
                 "description" => $description,
             ];
 
-            \Log::info('Razorpay QR Data:', $qrData);
-            \Log::info('Using Razorpay Key:', substr($razorpayKey, 0, 12) . '...');
+            Log::info('Razorpay QR Data:', [ $qrData ]);
+            //Log::info('Using Razorpay Key:', substr($razorpayKey, 0, 12) . '...');
             
             $qr = $api->qrCode->create($qrData);
 
-            \Log::info('Razorpay QR Response:', (array) $qr);
+            Log::info('Razorpay QR Response:', (array) $qr);
             return response()->json([
                 'status' => 'success',
                 'qr_id' => $qr['id'],
@@ -76,28 +77,28 @@ class RazorPaymentController extends Controller
             ], 200);
 
         } catch (\Razorpay\Api\Errors\BadRequestError $e) {
-            \Log::error('Razorpay Bad Request: ' . $e->getMessage());
+            Log::error('Razorpay Bad Request: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid request: ' . $e->getMessage(),
                 'suggestion' => 'Check if QR Code feature is enabled in your Razorpay dashboard',
             ], 400);
         } catch (\Razorpay\Api\Errors\ServerError $e) {
-            \Log::error('Razorpay Server Error: ' . $e->getMessage());
+            Log::error('Razorpay Server Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Razorpay server error: ' . $e->getMessage(),
                 'suggestion' => 'Try again later or contact Razorpay support',
             ], 503);
         } catch (\Razorpay\Api\Errors\Error $e) {
-            \Log::error('Razorpay API Error: ' . $e->getMessage());
+            Log::error('Razorpay API Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Razorpay API Error: ' . $e->getMessage(),
                 'code' => $e->getCode(),
             ], 400);
         } catch (Exception $e) {
-            \Log::error('General Error: ' . $e->getMessage());
+            Log::error('General Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Server Error: ' . $e->getMessage(),

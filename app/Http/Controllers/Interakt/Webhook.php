@@ -156,7 +156,6 @@ class Webhook extends Controller
                             $title = "New Order Received #{$commonData['orderNumber']}";
                             $body  = "{$commonData['name']} from {$commonData['building']}\nCollect: ₹15";
                             $message = sendExpoPushNotification($token, $title, $body, $data);
-
                             sendInteraktMessage(
                                 $commonData['customerPhone'],
                                 [

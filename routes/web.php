@@ -10,7 +10,7 @@ Route::get('/', function () {
 Route::get('/test-payment/{phoneNumber}/{template}', [ApiController::class, 'testPayment']);
 Route::get('/test-payment', [ApiController::class, 'testNotification']);
 Route::get('/create-payment-qr', [RazorPaymentController::class, 'createQr']);
-Route::get('/test-razorpay', [RazorPaymentController::class, 'testConnection']);
+Route::get('/test-razorpay', [RazorPaymentController::class, 'createQr']);
 
 
 Route::get('/about', function () {
