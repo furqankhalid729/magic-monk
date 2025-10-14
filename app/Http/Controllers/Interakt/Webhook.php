@@ -492,7 +492,12 @@ class Webhook extends Controller
                 //$totalAmount = ceil($totalAmount);
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
-
+                $shippingFee = 0;
+                if($toCollect < 28) {
+                    $shippingFee = 15;
+                    $toCollect = $toCollect + 15;
+                    $totalAmount = $totalAmount + 15;
+                }
                 Log::info('Order details', [
                     'totalAmount' => $totalAmount,
                     'paidOnline' => $paidOnline,
@@ -523,7 +528,16 @@ class Webhook extends Controller
                     "country"       => "IN"
                 ];
 
-                $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
+                $new_payload = [
+                    $itemList, 
+                    count($data['order_items'] ?? []), 
+                    $totalAmount - $shippingFee, 
+                    (string) $discountAmount,
+                    $totalAmount,
+                    (string) $shippingFee,
+                ];
+
+                Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
 
                 if ($payment_status === 'PENDING') {
                     $response = sendInteraktMessage(
