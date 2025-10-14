@@ -169,6 +169,8 @@ class Webhook extends Controller
                             );
                         } else if ($title == "Order Something Now") {
                             Cache::put("fast-sample-{$customer['phone_number']}", true, now()->addMinutes(30));
+                        } else if ($title == "Get WeFast in Mumbai") {
+                            Cache::put("we-fast-{$customer['phone_number']}", true, now()->addMinutes(60));
                         }
 
                     case 'Text':
@@ -449,6 +451,13 @@ class Webhook extends Controller
                     break;
                 }
 
+                $key = "we-fast-{$data['customer_phone_number']['phone_number']}";
+                if (Cache::has($key)) {
+                    $this->weFastCartFlow($data);
+                    $message = 'WeFast cart flow processed.';
+                    break;
+                }
+
                 $commonData = [
                     'orderNumber'   => $data['id'],
                     'name'          => $data['customer_traits']['RealName'] ?? $data['customer_traits']['name'] ?? 'Customer',
@@ -493,7 +502,7 @@ class Webhook extends Controller
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
                 $shippingFee = 0;
-                if($toCollect < 28) {
+                if ($toCollect < 28) {
                     $shippingFee = 15;
                     $toCollect = $toCollect + 15;
                     $totalAmount = $totalAmount + 15;
@@ -529,9 +538,9 @@ class Webhook extends Controller
                 ];
 
                 $new_payload = [
-                    $itemList, 
-                    count($data['order_items'] ?? []), 
-                    $totalAmount - $shippingFee, 
+                    $itemList,
+                    count($data['order_items'] ?? []),
+                    $totalAmount - $shippingFee,
                     (string) $discountAmount,
                     $totalAmount,
                     (string) $shippingFee,
@@ -629,7 +638,8 @@ class Webhook extends Controller
                             'paid_online' => $paidOnline,
                             'to_collect'  => $toCollect,
                             'payment_status' => $payment_status,
-                            'first_time_discount' => $firstTimeDiscount
+                            'first_time_discount' => $firstTimeDiscount,
+                            'shipping_fee' => $shippingFee
                         ]
                     ]);
 
@@ -912,6 +922,175 @@ class Webhook extends Controller
                         'to_collect'  => $toCollect,
                         'payment_status' => $payment_status,
                         'first_time_discount' => false
+                    ],
+                    'expo'          => [
+                        'token' => $token,
+                        'title' => "New Order Received #{$commonData['orderNumber']}",
+                        'body'  => "{$commonData['name']} from {$commonData['building']}\nCollect: ₹$toCollect",
+                        'data'  => $data
+                    ],
+                ];
+                Cache::put($cacheKey, $orderData, now()->addHours(6));
+                WhatsAppPayReminder::create([
+                    'phone_number' => $commonData['customerPhone'],
+                    'message_id'   => $response['id'],
+                    'is_sent'      => false,
+                    'order_data'   => $orderData
+                ]);
+                $message = 'Order data cached successfully.';
+            } else {
+                Log::error('Cache key not found in WhatsApp Pay response', ['response' => $response]);
+                $message = 'Failed to cache order data. Cache key not found.';
+            }
+        }
+
+        if ($payment_status === 'PAID') {
+            Log::info('Order payment status is PAID', ['data' => $data]);
+            $title = "New Order Received #{$commonData['orderNumber']}";
+            $body  = "{$commonData['name']} from {$commonData['building']}\nCollect: ₹$toCollect";
+
+            $message = sendExpoPushNotification($token, $title, $body, $data);
+            Log::info('Notification sent', ['message' => $message]);
+
+            sendInteraktMessage(
+                $commonData['customerPhone'],
+                [
+                    $agentDetails['name'] ?? null,
+                    $agentMobile,
+                    $commonData['orderNumber']
+                ],
+                ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
+                'orderconfirmationvideo',
+                null
+            );
+
+            $order = Order::create([
+                'customer_name' => $commonData['name'],
+                'order_id'      => $commonData['orderNumber'],
+                'customer_phone' => $commonData['customerPhone'],
+                'building'      => $commonData['building'],
+                'order_time'    => Carbon::now('Asia/Kolkata'),
+                'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
+                'agent_number'  => $agentMobile,
+                'message_id'    => $message['id'] ?? null,
+                'total_amount'  => $totalAmount,
+                'address'       => $commonData['address'],
+                'additional_info' => [
+                    'paid_online' => $paidOnline,
+                    'to_collect'  => $toCollect,
+                    'payment_status' => $payment_status,
+                    'first_time_discount' => false
+                ]
+            ]);
+
+            foreach ($data['order_items'] ?? [] as $item) {
+                OrderItem::create([
+                    'order_id'  => $order->id,
+                    'item_name' => $item['item_name'],
+                    'price'     => $item['price'],
+                    'quantity'  => $item['quantity'],
+                    'amount'    => $item['amount'],
+                ]);
+            }
+        }
+    }
+
+    public function weFastCartFlow($data)
+    {
+        $payment_status = $data['payment_status'] ?? 'PENDING';
+        $commonData = [
+            'orderNumber'   => $data['id'],
+            'name'          => $data['customer_traits']['RealName'] ?? $data['customer_traits']['name'] ?? 'Customer',
+            'address'       => $data['customer_traits']['HomeDeliveryAddress'] ?? 'N/A',
+            'building'      => 'Chakala Outlet',
+            'customerPhone' => "+91" . ($data['customer_phone_number']['phone_number'] ?? 'N/A'),
+            'headerImage'   => asset('storage/payment.jpeg'),
+            'product'       => $data['customer_traits']['FreeIcecream'] ?? 'N/A',
+        ];
+        $location = Location::where('building_name', $commonData['building'])->first();
+        $agentDetails = getAgentPhoneNumber($commonData['building'] ?? '');
+        $token = $agentDetails['token'] ?? null;
+        $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
+        $itemList = collect($data['order_items'] ?? [])
+            ->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")
+            ->implode(' | ');
+        $discountAmount = 0;
+        $totalAmount = max(0, $data['total_amount'] - $discountAmount);
+        $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
+        $toCollect  = $totalAmount - $paidOnline;
+        $shippingFee = 0;
+        if ($toCollect < 500) {
+            $shippingFee = 100;
+            $toCollect = $toCollect + 100;
+            $totalAmount = $totalAmount + 100;
+        }
+
+        Log::info('Residential Cart Order details', [
+            'totalAmount' => $totalAmount,
+            'paidOnline' => $paidOnline,
+            'toCollect' => $toCollect,
+            'payment_status' => $payment_status
+        ]);
+
+        $simplifiedItems = array_map(fn($item) => [
+            "name"             => $item["item_name"],
+            "quantity"         => $item["quantity"],
+            "amount"           => $item["amount"],
+            "country_of_origin" => "India"
+        ], $data['order_items'] ?? []);
+
+        $pay_address = [
+            "name"          => $commonData['name'],
+            "phone_number"  => ltrim($commonData['customerPhone'], '+'),
+            "address"       => $commonData['address'],
+            "city"          => "Mumbai",
+            "state"         => "Maharastra",
+            "in_pin_code"   => "400093",
+            "building_name" => $commonData['building'],
+            "landmark_area" => "Chakala",
+            "country"       => "IN"
+        ];
+
+        $new_payload = [
+            $itemList, 
+            count($data['order_items'] ?? []), 
+            $totalAmount - $shippingFee, 
+            (string) $discountAmount, 
+            $totalAmount,
+            (string) $shippingFee
+        ];
+
+        if ($payment_status === 'PENDING') {
+            $response = sendInteraktMessage(
+                $commonData['customerPhone'],
+                $new_payload,
+                [$commonData['headerImage']],
+                'backup_paymentfm',
+                null
+            );
+            //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
+            Log::info('WhatsApp Pay response', ['response' => $response]);
+
+            $cacheKey = $response['id'] ?? null;
+            if ($cacheKey) {
+                $orderData = [
+                    'customer_name' => $commonData['name'],
+                    'order_id'      => $commonData['orderNumber'],
+                    'customer_phone' => $commonData['customerPhone'],
+                    'building'      => $commonData['building'],
+                    'order_time'    => Carbon::now('Asia/Kolkata'),
+                    'delivery_time' => Carbon::now('Asia/Kolkata')->addMinutes(5),
+                    'agent_number'  => $agentMobile,
+                    'total_amount'  => $totalAmount,
+                    'address'       => $commonData['address'],
+                    'order_items'   => $data['order_items'] ?? [],
+                    'discount'      => $discountAmount,
+                    'additional_info' => [
+                        'paid_online' => $paidOnline,
+                        'to_collect'  => $toCollect,
+                        'payment_status' => $payment_status,
+                        'first_time_discount' => false,
+                        'shipping_fee' => $shippingFee
                     ],
                     'expo'          => [
                         'token' => $token,
