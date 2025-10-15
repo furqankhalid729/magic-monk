@@ -540,9 +540,9 @@ class Webhook extends Controller
                 $new_payload = [
                     $itemList,
                     count($data['order_items'] ?? []),
-                    $totalAmount - $shippingFee,
+                    (string) ($totalAmount - $shippingFee),
                     (string) $discountAmount,
-                    $totalAmount,
+                    (string) $totalAmount,
                     (string) $shippingFee,
                 ];
 
@@ -726,7 +726,13 @@ class Webhook extends Controller
             "country"       => "IN"
         ];
 
-        $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
+        $new_payload = [
+            $itemList, 
+            count($data['order_items'] ?? []), 
+            (string) $totalAmount, 
+            (string) $discountAmount, 
+            (string) $totalAmount
+        ];
 
         if ($payment_status === 'PENDING') {
             $response = sendInteraktMessage(
@@ -1032,31 +1038,12 @@ class Webhook extends Controller
             'payment_status' => $payment_status
         ]);
 
-        $simplifiedItems = array_map(fn($item) => [
-            "name"             => $item["item_name"],
-            "quantity"         => $item["quantity"],
-            "amount"           => $item["amount"],
-            "country_of_origin" => "India"
-        ], $data['order_items'] ?? []);
-
-        $pay_address = [
-            "name"          => $commonData['name'],
-            "phone_number"  => ltrim($commonData['customerPhone'], '+'),
-            "address"       => $commonData['address'],
-            "city"          => "Mumbai",
-            "state"         => "Maharastra",
-            "in_pin_code"   => "400093",
-            "building_name" => $commonData['building'],
-            "landmark_area" => "Chakala",
-            "country"       => "IN"
-        ];
-
         $new_payload = [
             $itemList, 
             count($data['order_items'] ?? []), 
-            $totalAmount - $shippingFee, 
+            (string) ($totalAmount - $shippingFee), 
             (string) $discountAmount, 
-            $totalAmount,
+            (string) $totalAmount,
             (string) $shippingFee
         ];
 
