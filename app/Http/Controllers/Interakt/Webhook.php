@@ -168,9 +168,9 @@ class Webhook extends Controller
                                 null
                             );
                         } else if ($title == "Order Something Now") {
-                            Cache::put("fast-sample-{$customer['phone_number']}", true, now()->addMinutes(30));
+                            Cache::put("fast-sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($title == "Get WeFast in Mumbai") {
-                            Cache::put("we-fast-{$customer['phone_number']}", true, now()->addMinutes(60));
+                            Cache::put("we-fast-{$customer['phone_number']}", true, now()->addMinutes(300));
                         }
 
                     case 'Text':
@@ -248,7 +248,7 @@ class Webhook extends Controller
                                 Log::info('Message context ID not found');
                             }
                         } else if ($text == "Free Sample") {
-                            Cache::put("sample-{$customer['phone_number']}", true, now()->addMinutes(30));
+                            Cache::put("sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($text == "OK Please Deliver It") {
                             $data = $request->input('data');
                             Log::info('Delivery fee confirmation received', $data);
