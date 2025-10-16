@@ -108,18 +108,8 @@ class ApiController extends Controller
     }
     public function testNotification(Request $request)
     {
-        $phone = "ExponentPushToken[N7gUohJhjd11r2EU0iTvJS]";
-        $title = $request->query('title', 'Test updated');
-        $body = $request->query('body', 'This is a test notification.');
-        $data = $request->query('data', ['key' => 'value']);
-
-        if (!$phone) {
-            return response()->json(['error' => 'Phone number is required'], 400);
-        }
-
-        $response = sendExpoPushNotification($phone, $title, $body, $data);
-
-        return response()->json($response);
+        $number = $request->query('number', '+919867871610');
+        return getDiscountAmount("+919867871610");
     }
 
     public function getStores()

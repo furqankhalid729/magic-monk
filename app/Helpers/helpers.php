@@ -314,10 +314,10 @@ if (!function_exists('addReferrerCoupon')) {
 }
 
 if(!function_exists('addCustomerCoupon')) {
-    function addCustomerCoupon($customerPhone, $discountAmount) {
+    function addCustomerCoupon($customerPhone, $handle) {
         DB::table('customer_coupons')->insert([
             'customer_phone' => $customerPhone,
-            'coupon_handle' => "50-off"
+            'coupon_handle' => $handle
         ]);
     }
 }

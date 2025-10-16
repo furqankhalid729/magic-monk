@@ -104,6 +104,14 @@ class AndroidAgentController extends Controller
         $order->review_message_id = $response['id'] ?? null;
         $order->save();
 
+        $orderCount = Order::where('customer_phone', $order->customer_phone)
+            ->where('status', 'delivered')
+            ->count();
+
+        if ($orderCount === 1) {
+            addCustomerCoupon($order->customer_phone, '50-off');
+        }
+
         return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
     }
 }
