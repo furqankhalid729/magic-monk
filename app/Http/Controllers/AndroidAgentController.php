@@ -108,7 +108,8 @@ class AndroidAgentController extends Controller
             ->where('status', 'delivered')
             ->count();
 
-        if ($orderCount === 1) {
+        $additionalInfo = $order->additional_info ?? [];
+        if ($orderCount === 1 && $additionalInfo['first_time_discount'] === true && $additionalInfo['offer_live'] === true) {
             addCustomerCoupon($order->customer_phone, '50-off');
         }
 

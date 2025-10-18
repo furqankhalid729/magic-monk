@@ -577,8 +577,10 @@ class Webhook extends Controller
                             'additional_info' => [
                                 'paid_online' => $paidOnline,
                                 'to_collect'  => $toCollect,
+                                'shipping_fee' => $shippingFee,
                                 'payment_status' => $payment_status,
-                                'first_time_discount' => $firstTimeDiscount
+                                'first_time_discount' => $firstTimeDiscount,
+                                'offer_live' => $location->is_offer_live ?? false,
                             ],
                             'expo'          => [
                                 'token' => $token,
