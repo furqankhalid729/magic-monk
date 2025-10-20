@@ -14,4 +14,9 @@ class Coupon extends Model
         'expiration_days',
         'discount_amount'
     ];
+
+    public function customerCoupons()
+    {
+        return $this->hasMany(CustomerCoupon::class, 'coupon_handle', 'handle');
+    }
 }
