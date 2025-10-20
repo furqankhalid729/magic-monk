@@ -317,7 +317,9 @@ if(!function_exists('addCustomerCoupon')) {
     function addCustomerCoupon($customerPhone, $handle) {
         DB::table('customer_coupons')->insert([
             'customer_phone' => $customerPhone,
-            'coupon_handle' => $handle
+            'coupon_handle' => $handle,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 }
