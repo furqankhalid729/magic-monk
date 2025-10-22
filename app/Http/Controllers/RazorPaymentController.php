@@ -11,23 +11,7 @@ class RazorPaymentController extends Controller
 {
     public function testConnection(Request $request)
     {
-        try {
-            $api = new Api(config('services.razorpay.key'), config('services.razorpay.secret'));
-
-            // Test with a simple API call
-            $payments = $api->payment->all(['count' => 1]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Razorpay connection successful',
-                'key_type' => substr(config('services.razorpay.key'), 0, 8) === 'rzp_test' ? 'test' : 'live'
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Razorpay connection failed: ' . $e->getMessage(),
-            ], 500);
-        }
+       return generatePaymentLink();
     }
 
     public function createQr(Request $request)

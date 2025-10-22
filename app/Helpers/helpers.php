@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Razorpay\Api\Api;
 
 if (!function_exists('sendInteraktMessage')) {
     function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null)
@@ -193,7 +194,6 @@ if (!function_exists('updateReview')) {
         }
     }
 }
-
 function getDiscountAmount($customerPhone)
 {
     $coupon = DB::table('customer_coupons')
@@ -313,8 +313,9 @@ if (!function_exists('addReferrerCoupon')) {
     }
 }
 
-if(!function_exists('addCustomerCoupon')) {
-    function addCustomerCoupon($customerPhone, $handle) {
+if (!function_exists('addCustomerCoupon')) {
+    function addCustomerCoupon($customerPhone, $handle)
+    {
         DB::table('customer_coupons')->insert([
             'customer_phone' => $customerPhone,
             'coupon_handle' => $handle,
@@ -324,11 +325,52 @@ if(!function_exists('addCustomerCoupon')) {
     }
 }
 
-if(!function_exists('updateReminderStatus')) {
-    function updateReminderStatus($phoneNumber) {
+if (!function_exists('updateReminderStatus')) {
+    function updateReminderStatus($phoneNumber)
+    {
         WhatsAppPayReminder::where('phone_number', $phoneNumber)
             ->where('is_sent', false)
             ->update(['is_sent' => true]);
     }
-    
+}
+
+if (!function_exists(('generatePaymentLink'))) {
+    function generatePaymentLink()
+    {
+        $razorpayKey = config('services.razorpay.key');
+        $razorpaySecret = config('services.razorpay.secret');
+
+        $api = new Api($razorpayKey, $razorpaySecret);
+
+        $amount = (int) 100;
+        $orderId = 'ORDER-' . time();
+        $customerName = 'test user';
+        $customerPhone = '9876781610';
+        $customerEmail = 'test@gmail.com';
+
+        $link = $api->paymentLink->create([
+            'amount' => $amount * 100,
+            'currency' => 'INR',
+            'accept_partial' => false,
+            'reference_id' => $orderId,
+            'description' => "Payment for Order #$orderId",
+            'customer' => [
+                'name' => $customerName,
+                'contact' => $customerPhone,
+                'email' => $customerEmail,
+            ],
+            'notify' => [
+                'sms' => true,
+                'email' => true,
+            ],
+            'callback_url' => url("/payment/callback/$orderId"),
+            'callback_method' => 'get'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'payment_link' => $link['short_url'],
+            'order_id' => $orderId,
+        ]);
+    }
 }
