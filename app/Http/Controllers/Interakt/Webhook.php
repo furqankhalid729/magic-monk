@@ -537,6 +537,13 @@ class Webhook extends Controller
                     "country"       => "IN"
                 ];
 
+                $paymentLink = generatePaymentLink(
+                    $commonData['name'],
+                    ltrim($commonData['customerPhone'], '+'),
+                    $data['customer_email'] ?? '',
+                    $totalAmount * 100,
+                    $commonData['orderNumber']
+                );
                 $new_payload = [
                     $itemList,
                     count($data['order_items'] ?? []),
@@ -544,6 +551,7 @@ class Webhook extends Controller
                     (string) $discountAmount,
                     (string) $totalAmount,
                     (string) $shippingFee,
+                    $paymentLink['payment_link']
                 ];
 
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
@@ -724,12 +732,20 @@ class Webhook extends Controller
             "country"       => "IN"
         ];
 
+        $paymentLink = generatePaymentLink(
+            $commonData['name'],
+            ltrim($commonData['customerPhone'], '+'),
+            $data['customer_email'] ?? '',
+            $totalAmount * 100,
+            $commonData['orderNumber']
+        );
         $new_payload = [
-            $itemList, 
-            count($data['order_items'] ?? []), 
-            (string) $totalAmount, 
-            (string) $discountAmount, 
-            (string) $totalAmount
+            $itemList,
+            count($data['order_items'] ?? []),
+            (string) $totalAmount,
+            (string) $discountAmount,
+            (string) $totalAmount,
+            $paymentLink['payment_link']
         ];
 
         if ($payment_status === 'PENDING') {
@@ -894,7 +910,22 @@ class Webhook extends Controller
             "country"       => "IN"
         ];
 
-        $new_payload = [$itemList, count($data['order_items'] ?? []), $totalAmount, (string) $discountAmount, $totalAmount];
+        $paymentLink = generatePaymentLink(
+            $commonData['name'],
+            ltrim($commonData['customerPhone'], '+'),
+            $data['customer_email'] ?? '',
+            $totalAmount * 100,
+            $commonData['orderNumber']
+        );
+
+        $new_payload = [
+            $itemList,
+            count($data['order_items'] ?? []),
+            $totalAmount,
+            (string) $discountAmount,
+            $totalAmount,
+            $paymentLink['payment_link']
+        ];
 
         if ($payment_status === 'PENDING') {
             $response = sendInteraktMessage(
@@ -1036,13 +1067,22 @@ class Webhook extends Controller
             'payment_status' => $payment_status
         ]);
 
+        $paymentLink = generatePaymentLink(
+            $commonData['name'],
+            ltrim($commonData['customerPhone'], '+'),
+            $data['customer_email'] ?? '',
+            $totalAmount * 100,
+            $commonData['orderNumber']
+        );
+
         $new_payload = [
-            $itemList, 
-            count($data['order_items'] ?? []), 
-            (string) ($totalAmount - $shippingFee), 
-            (string) $discountAmount, 
+            $itemList,
+            count($data['order_items'] ?? []),
+            (string) ($totalAmount - $shippingFee),
+            (string) $discountAmount,
             (string) $totalAmount,
-            (string) $shippingFee
+            (string) $shippingFee,
+            $paymentLink['payment_link']
         ];
 
         if ($payment_status === 'PENDING') {

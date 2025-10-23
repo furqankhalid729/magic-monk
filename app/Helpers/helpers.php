@@ -335,7 +335,7 @@ if (!function_exists('updateReminderStatus')) {
 }
 
 if (!function_exists(('generatePaymentLink'))) {
-    function generatePaymentLink()
+    function generatePaymentLink($name, $phone, $email, $amount, $orderId)
     {
         $razorpayKey = config('services.razorpay.key');
         $razorpaySecret = config('services.razorpay.secret');
