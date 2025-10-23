@@ -367,10 +367,10 @@ if (!function_exists(('generatePaymentLink'))) {
             'callback_method' => 'get'
         ]);
 
-        return response()->json([
+        return [
             'status' => 'success',
             'payment_link' => $link['short_url'],
             'order_id' => $orderId,
-        ]);
+        ];
     }
 }
