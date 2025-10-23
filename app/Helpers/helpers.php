@@ -341,12 +341,7 @@ if (!function_exists(('generatePaymentLink'))) {
         $razorpaySecret = config('services.razorpay.secret');
 
         $api = new Api($razorpayKey, $razorpaySecret);
-
-        $amount = (int) 100;
         $orderId = 'ORDER-' . time();
-        $customerName = 'test user';
-        $customerPhone = '9876781610';
-        $customerEmail = 'test@gmail.com';
 
         $link = $api->paymentLink->create([
             'amount' => $amount * 100,
@@ -355,9 +350,9 @@ if (!function_exists(('generatePaymentLink'))) {
             'reference_id' => $orderId,
             'description' => "Payment for Order #$orderId",
             'customer' => [
-                'name' => $customerName,
-                'contact' => $customerPhone,
-                'email' => $customerEmail,
+                'name' => $name,
+                'contact' => $phone,
+                'email' => $email,
             ],
             'notify' => [
                 'sms' => true,
