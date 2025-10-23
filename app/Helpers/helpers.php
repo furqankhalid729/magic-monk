@@ -344,7 +344,7 @@ if (!function_exists(('generatePaymentLink'))) {
         $orderId = 'ORDER-' . time();
 
         $link = $api->paymentLink->create([
-            'amount' => $amount * 100,
+            'amount' => $amount,
             'currency' => 'INR',
             'accept_partial' => false,
             'reference_id' => $orderId,
