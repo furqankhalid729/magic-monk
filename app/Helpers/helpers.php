@@ -369,3 +369,33 @@ if (!function_exists(('generatePaymentLink'))) {
         ];
     }
 }
+
+if(!function_exists('generateQrCode')) {
+    function generateQrCode($amount, $description = 'Payment for order') {
+        $razorpayKey = config('services.razorpay.key');
+        $razorpaySecret = config('services.razorpay.secret');
+
+        $api = new Api($razorpayKey, $razorpaySecret);
+
+        $qrData = [
+            "type" => "upi_qr",
+            "usage" => "single_use",
+            "fixed_amount" => true,
+            "payment_amount" => $amount,
+            "description" => $description,
+        ];
+
+        // Create the QR code
+        $qr = $api->qrCode->create($qrData);
+
+        // Re-fetch QR details to get the image_url
+        $qrDetails = $api->qrCode->fetch($qr['id']);
+
+        return [
+            'status' => 'success',
+            'qr_id' => $qr['id'],
+            'qr_image' => $qrDetails['image_url'], // actual QR image
+            'amount' => $amount,
+        ];
+    }
+}

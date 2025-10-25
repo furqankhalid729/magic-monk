@@ -517,25 +517,6 @@ class Webhook extends Controller
                 if ($totalAmount <= 0) {
                     $payment_status = 'PAID';
                 }
-                //$payment_status = 'PAID';
-                $simplifiedItems = array_map(fn($item) => [
-                    "name"             => $item["item_name"],
-                    "quantity"         => $item["quantity"],
-                    "amount"           => $item["amount"],
-                    "country_of_origin" => "India"
-                ], $data['order_items'] ?? []);
-
-                $pay_address = [
-                    "name"          => $commonData['name'],
-                    "phone_number"  => ltrim($commonData['customerPhone'], '+'),
-                    "address"       => $commonData['address'],
-                    "city"          => "Mumbai",
-                    "state"         => "Maharastra",
-                    "in_pin_code"   => "400093",
-                    "building_name" => $commonData['building'],
-                    "landmark_area" => "Chakala",
-                    "country"       => "IN"
-                ];
 
                 $paymentLink = generatePaymentLink(
                     $commonData['name'],
@@ -582,6 +563,9 @@ class Webhook extends Controller
                             'address'       => $commonData['address'],
                             'order_items'   => $data['order_items'] ?? [],
                             'discount'      => $discountAmount,
+                            'payment_link' => $commonData['payment_link'] ?? '',
+                            'payment_status' => 'pending',
+                            'delivery_instructions' => $commonData['delivery_instructions'] ?? '',
                             'additional_info' => [
                                 'paid_online' => $paidOnline,
                                 'to_collect'  => $toCollect,
@@ -597,8 +581,9 @@ class Webhook extends Controller
                                 'data'  => $data
                             ],
                         ];
-
+                        
                         Cache::put($cacheKey, $orderData, now()->addHours(6));
+                        Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
                         WhatsAppPayReminder::create([
                             'phone_number' => $commonData['customerPhone'],
                             'message_id'   => $response['id'],
