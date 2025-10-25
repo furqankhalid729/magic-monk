@@ -22,7 +22,13 @@ class Order extends Model
         'order_details',
         'review',
         'review_message_id',
-        'additional_info'
+        'additional_info',
+
+        'payment_method',
+        'payment_link',
+        'payment_qr_code',
+        'payment_status',
+        'delivery_instructions'
     ];
 
     protected $casts = [
