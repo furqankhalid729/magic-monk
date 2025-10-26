@@ -358,8 +358,6 @@ if (!function_exists(('generatePaymentLink'))) {
                 'sms' => true,
                 'email' => true,
             ],
-            'callback_url' => url("/payment/callback/$orderId"),
-            'callback_method' => 'get'
         ]);
 
         return [
