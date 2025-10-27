@@ -251,7 +251,7 @@ class Webhook extends Controller
                             Cache::put("sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($text == "Please Give Me My ₹50 Off Voucher") {
                             if (!Cache::has("50-off-{$customer['phone_number']}")) {
-                                addCustomerCoupon($customer['phone_number'], "50-off");
+                                addCustomerCoupon("+91".$customer['phone_number'], "50-off");
                                 Cache::put("50-off-{$customer['phone_number']}", true, now()->addHour(24));
                             }
                         } else if ($text == "OK Please Deliver It") {
