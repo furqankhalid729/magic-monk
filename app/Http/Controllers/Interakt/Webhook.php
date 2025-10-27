@@ -249,6 +249,11 @@ class Webhook extends Controller
                             }
                         } else if ($text == "Free Sample") {
                             Cache::put("sample-{$customer['phone_number']}", true, now()->addMinutes(300));
+                        } else if ($text == "Please Give Me My ₹50 Off Voucher") {
+                            if (!Cache::has("50-off-{$customer['phone_number']}")) {
+                                addCustomerCoupon($customer['phone_number'], "50-off");
+                                Cache::put("50-off-{$customer['phone_number']}", true, now()->addHour(24));
+                            }
                         } else if ($text == "OK Please Deliver It") {
                             $data = $request->input('data');
                             Log::info('Delivery fee confirmation received', $data);
@@ -581,7 +586,7 @@ class Webhook extends Controller
                                 'data'  => $data
                             ],
                         ];
-                        
+
                         Cache::put($cacheKey, $orderData, now()->addHours(6));
                         Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
                         WhatsAppPayReminder::create([
