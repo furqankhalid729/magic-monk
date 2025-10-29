@@ -777,6 +777,7 @@ class Webhook extends Controller
                     ],
                 ];
                 Cache::put($cacheKey, $orderData, now()->addHours(6));
+                Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
                 WhatsAppPayReminder::create([
                     'phone_number' => $commonData['customerPhone'],
                     'message_id'   => $response['id'],
@@ -956,6 +957,7 @@ class Webhook extends Controller
                     ],
                 ];
                 Cache::put($cacheKey, $orderData, now()->addHours(6));
+                Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
                 WhatsAppPayReminder::create([
                     'phone_number' => $commonData['customerPhone'],
                     'message_id'   => $response['id'],
@@ -1115,6 +1117,7 @@ class Webhook extends Controller
                     ],
                 ];
                 Cache::put($cacheKey, $orderData, now()->addHours(6));
+                Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
                 WhatsAppPayReminder::create([
                     'phone_number' => $commonData['customerPhone'],
                     'message_id'   => $response['id'],

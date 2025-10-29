@@ -30,7 +30,7 @@ class RazorPayWebhookController extends Controller
 
     private function updateOrderData($cacheData, $paymentDetails)
     {
-        $amountPaid = $paymentDetails['amount'] / 100; // Convert from paise to rupees
+        $amountPaid = $paymentDetails['amount'] / 100;
         if (!empty($cacheData['expo']['token'])) {
             $message = sendExpoPushNotification(
                 $cacheData['expo']['token'],
