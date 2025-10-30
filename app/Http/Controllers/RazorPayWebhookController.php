@@ -41,17 +41,34 @@ class RazorPayWebhookController extends Controller
             Log::info("Expo notification sent", ['response' => $message]);
         }
         $agent = getAgentPhoneNumber($cacheData['building']);
-        sendInteraktMessage(
-            $cacheData['customer_phone'],
-            [
-                $agent['name'] ?? null,
-                $cacheData['agent_number'] ?? null,
-                $cacheData['order_id']
-            ],
-            ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
-            'orderconfirmationvideo',
-            null
-        );
+
+        $key = "we-fast-{$cacheData['customer_phone']}";
+        if (Cache::has($key)) {
+            sendInteraktMessage(
+                $cacheData['customer_phone'],
+                [
+                    $agent['building'] ?? null,
+                    $cacheData['agent_number'] ?? null,
+                    $cacheData['order_id']
+                ],
+                ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/LG0h8e5v7GRS/WhatsApp%20Video%202025-08-24%20at%2023.34.38.mp4?se=2030-08-27T21%3A17%3A03Z&sp=rt&sv=2019-12-12&sr=b&sig=P3tgreah5p8KjEWQmE%2BdFfnjKNHl83xKwAtgj1HVOSA%3D'],
+                'wforderconfirmationvideo',
+                null
+            );
+        } else {
+            sendInteraktMessage(
+                $cacheData['customer_phone'],
+                [
+                    $agent['name'] ?? null,
+                    $cacheData['agent_number'] ?? null,
+                    $cacheData['order_id']
+                ],
+                ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
+                'orderconfirmationvideo',
+                null
+            );
+        }
+
 
         // Create Order
         $order = Order::create([
@@ -62,7 +79,7 @@ class RazorPayWebhookController extends Controller
             'order_time'     => $cacheData['order_time'] ?? now('Asia/Kolkata'),
             'delivery_time'  => $cacheData['delivery_time'] ?? now('Asia/Kolkata')->addMinutes(5),
             'agent_number'   => $cacheData['agent_number'] ?? null,
-            'total_amount'   => 0,//$cacheData['total_amount'] ?? null,
+            'total_amount'   => 0, //$cacheData['total_amount'] ?? null,
             'address'        => $cacheData['address'] ?? null,
             'expo_token'     => data_get($cacheData, 'expo.token'),
             'payment_status' => 'paid',
