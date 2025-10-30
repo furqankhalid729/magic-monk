@@ -358,6 +358,8 @@ if (!function_exists(('generatePaymentLink'))) {
                 'sms' => true,
                 'email' => true,
             ],
+            'callback_url' => url("https://fm.monkmagic.in/"),
+            'callback_method' => 'get'
         ]);
 
         return [
