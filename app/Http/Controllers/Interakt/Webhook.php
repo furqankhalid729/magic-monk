@@ -176,6 +176,9 @@ class Webhook extends Controller
                     case 'Text':
                         $text = $request->input('data.message.message');
                         if ($text === "I'll Pay UPI on Delivery") {
+                            $phone = "+91" . $request->input('data.customer.phone_number');
+                            $key = "we-fast-{$phone}";
+                            
                             $data = $request->input('data');
                             Log::info('UPI on Delivery confirmation received', $data);
                             $messageContextId = data_get($request->input('data'), 'message.message_context.id');
@@ -211,7 +214,6 @@ class Webhook extends Controller
                                         'orderconfirmationvideo',
                                         null
                                     );
-
                                     // Create Order
                                     $order = Order::create([
                                         'customer_name'  => $cacheData['customer_name'] ?? null,
@@ -231,7 +233,6 @@ class Webhook extends Controller
                                             'first_time_discount' => $cacheData['additional_info']['first_time_discount'] ?? null
                                         ]
                                     ]);
-
                                     foreach ($cacheData['order_items'] ?? [] as $item) {
                                         OrderItem::create([
                                             'order_id'  => $order->id,
@@ -251,7 +252,7 @@ class Webhook extends Controller
                             Cache::put("sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($text == "Please Give Me My ₹50 Off Voucher") {
                             if (!Cache::has("50-off-{$customer['phone_number']}")) {
-                                addCustomerCoupon("+91".$customer['phone_number'], "50-off");
+                                addCustomerCoupon("+91" . $customer['phone_number'], "50-off");
                                 Cache::put("50-off-{$customer['phone_number']}", true, now()->addHour(24));
                             }
                         } else if ($text == "OK Please Deliver It") {
@@ -508,9 +509,9 @@ class Webhook extends Controller
                 $toCollect  = $totalAmount - $paidOnline;
                 $shippingFee = 0;
                 if ($toCollect < 28) {
-                    $shippingFee = 15;
-                    $toCollect = $toCollect + 15;
-                    $totalAmount = $totalAmount + 15;
+                    $shippingFee = 20;
+                    $toCollect = $toCollect + 20;
+                    $totalAmount = $totalAmount + 20;
                 }
                 Log::info('Order details', [
                     'totalAmount' => $totalAmount,
