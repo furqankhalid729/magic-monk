@@ -14,6 +14,7 @@ use App\Models\Location;
 use Illuminate\Support\Str;
 use App\Services\ReferralService;
 use App\Models\WhatsAppPayReminder;
+use App\Models\Setting;
 
 class Webhook extends Controller
 {
@@ -25,6 +26,7 @@ class Webhook extends Controller
     }
     public function handle(Request $request)
     {
+        $settings = Setting::first();
         $topic = $request->input('type');
         $message = 'Unknown webhook topic.';
         //updateReminderStatus("+91".$request->input('data.customer.phone_number'));
@@ -509,9 +511,9 @@ class Webhook extends Controller
                 $toCollect  = $totalAmount - $paidOnline;
                 $shippingFee = 0;
                 if ($toCollect < 28) {
-                    $shippingFee = 20;
-                    $toCollect = $toCollect + 20;
-                    $totalAmount = $totalAmount + 20;
+                    $shippingFee = $settings->fast_mover_shipping_rate ?? 20;
+                    $toCollect = $toCollect + $shippingFee;
+                    $totalAmount = $totalAmount + $shippingFee;
                 }
                 Log::info('Order details', [
                     'totalAmount' => $totalAmount,

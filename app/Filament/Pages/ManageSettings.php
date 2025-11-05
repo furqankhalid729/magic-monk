@@ -36,6 +36,11 @@ class ManageSettings extends Page implements HasForms
                 ->label('Shipping Rate')
                 ->numeric()
                 ->required(),
+
+            Forms\Components\TextInput::make('fast_mover_shipping_rate')
+                ->label('Fast Mover Shippinhg Rate')
+                ->numeric()
+                ->required(),
         ];
     }
 
