@@ -11,8 +11,7 @@ Route::get('/test-payment/{phoneNumber}/{template}', [ApiController::class, 'tes
 Route::get('/test-discount', [ApiController::class, 'testNotification']);
 Route::get('/create-payment-qr', [RazorPaymentController::class, 'createQr']);
 Route::get('/test-razorpay', [RazorPaymentController::class, 'testConnection']);
-
-
+Route::get('/test-subscription', [RazorPaymentController::class, 'testSubscription']);
 Route::get('/about', function () {
     return view('about');
 });
