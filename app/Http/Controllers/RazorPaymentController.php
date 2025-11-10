@@ -89,29 +89,28 @@ class RazorPaymentController extends Controller
         }
 
         try {
-            $api = new Api($razorpayKey, $razorpaySecret);
+            $api = new \Razorpay\Api\Api($razorpayKey, $razorpaySecret);
 
-            // Create a plan
-            $planData = [
-                "period" => "monthly",
-                "interval" => 1,
-                "item" => [
-                    "name" => "Test Monthly Plan",
-                    "amount" => 5000, // Amount in paise (50.00 INR)
-                    "currency" => "INR",
-                    "description" => "Monthly subscription plan"
-                ]
-            ];
-            Log::info('Creating Razorpay Plan:', [$planData]);
+            // ✅ Use your existing plan ID here (from Razorpay Dashboard)
+            $existingPlanId = 'plan_JzYpD5wM9kWm6t'; // <-- replace with your actual plan_id
 
-            $plan = $api->plan->create($planData);
-            Log::info('Razorpay Plan Created:', (array)$plan);
-            // Create a subscription
+            // (Optional) Create a Razorpay customer first
+            $customer = $api->customer->create([
+                'name'    => $request->input('name', 'Test User'),
+                'email'   => $request->input('email', 'test@example.com'),
+                'contact' => $request->input('contact', '9999999999'),
+            ]);
+
+            Log::info('Razorpay Customer Created:', (array)$customer);
+
+            // ✅ Create subscription using existing plan
             $subscriptionData = [
-                "plan_id" => $plan['id'],
+                "plan_id" => $existingPlanId,
                 "customer_notify" => 1,
                 "total_count" => 12,
+                "customer_id" => $customer['id'], // link to this customer
             ];
+
             Log::info('Creating Razorpay Subscription:', [$subscriptionData]);
 
             $subscription = $api->subscription->create($subscriptionData);
@@ -119,8 +118,9 @@ class RazorPaymentController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'plan_id' => $plan['id'],
                 'subscription_id' => $subscription['id'],
+                'customer_id' => $customer['id'],
+                'plan_id' => $existingPlanId,
             ], 200);
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
@@ -131,6 +131,10 @@ class RazorPaymentController extends Controller
             ], 400);
         } catch (\Exception $e) {
             Log::error('General Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'General Error: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }
