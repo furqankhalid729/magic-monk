@@ -97,37 +97,41 @@ class RazorPaymentController extends Controller
             $customerId = $request->input('customer_id');
 
             if (!$customerId) {
-                // 🧠 Use unique email/contact each time OR fetch from DB
-                $email = $request->input('email', 'test37647364' . rand(100, 999) . '@gmail.com');
+                $email = $request->input('email', 'test' . rand(1000, 9999) . '@gmail.com');
                 $customer = $api->customer->create([
                     'name'    => $request->input('name', 'Test User'),
                     'email'   => $email,
-                    'contact' => $request->input('contact', '9999999786'),
+                    'contact' => $request->input('contact', '9999999999'),
                 ]);
                 $customerId = $customer['id'];
+                Log::info('Razorpay Customer Created:', (array)$customer);
             }
 
-
-            Log::info('Razorpay Customer Created:', (array)$customer);
-
-            // ✅ Create subscription using existing plan
+            // ✅ Create subscription and tell Razorpay to send checkout link
             $subscriptionData = [
                 "plan_id" => $existingPlanId,
-                "customer_notify" => 1,
-                "total_count" => 12,
-                "customer_id" => $customerId, // link to this customer
+                "total_count" => 12, // 12 billing cycles (e.g. months)
+                "customer_notify" => 1, // Razorpay will send link via SMS/email
+                "customer_id" => $customerId,
+                "notify_info" => [
+                    "notify_email" => $request->input('email', 'nikunjb@monkmagic.in'),
+                    "notify_phone" => $request->input('contact', '9999999999'),
+                ],
             ];
 
             Log::info('Creating Razorpay Subscription:', [$subscriptionData]);
-
             $subscription = $api->subscription->create($subscriptionData);
             Log::info('Razorpay Subscription Created:', (array)$subscription);
+
+            // ✅ Razorpay returns a checkout link (short_url)
+            $checkoutLink = $subscription['short_url'] ?? null;
 
             return response()->json([
                 'status' => 'success',
                 'subscription_id' => $subscription['id'],
                 'customer_id' => $customerId,
                 'plan_id' => $existingPlanId,
+                'checkout_link' => $checkoutLink, // 👈 send this link to WhatsApp
             ], 200);
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
