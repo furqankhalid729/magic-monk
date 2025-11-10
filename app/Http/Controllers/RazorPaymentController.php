@@ -78,8 +78,8 @@ class RazorPaymentController extends Controller
     {
         Log::info('Testing Razorpay Subscription Creation');
 
-        $razorpayKey = config('services.razorpay.key');
-        $razorpaySecret = config('services.razorpay.secret');
+        $razorpayKey = config('services.razorpay.key_test');
+        $razorpaySecret = config('services.razorpay.secret_test');
 
         if (empty($razorpayKey) || empty($razorpaySecret)) {
             return response()->json([
