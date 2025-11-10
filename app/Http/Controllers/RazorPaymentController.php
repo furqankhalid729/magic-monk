@@ -92,7 +92,7 @@ class RazorPaymentController extends Controller
             $api = new \Razorpay\Api\Api($razorpayKey, $razorpaySecret);
 
             // ✅ Use your existing plan ID here (from Razorpay Dashboard)
-            $existingPlanId = 'plan_JzYpD5wM9kWm6t'; // <-- replace with your actual plan_id
+            $existingPlanId = 'plan_RdxIziZm5vuIiP';
 
             // (Optional) Create a Razorpay customer first
             $customer = $api->customer->create([
