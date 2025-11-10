@@ -98,11 +98,11 @@ class RazorPaymentController extends Controller
 
             if (!$customerId) {
                 // 🧠 Use unique email/contact each time OR fetch from DB
-                $email = $request->input('email', 'test' . rand(100, 999) . '@example.com');
+                $email = $request->input('email', 'test37647364' . rand(100, 999) . '@gmail.com');
                 $customer = $api->customer->create([
                     'name'    => $request->input('name', 'Test User'),
                     'email'   => $email,
-                    'contact' => $request->input('contact', '9999999999'),
+                    'contact' => $request->input('contact', '9999999786'),
                 ]);
                 $customerId = $customer['id'];
             }
