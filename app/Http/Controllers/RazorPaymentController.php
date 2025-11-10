@@ -94,12 +94,19 @@ class RazorPaymentController extends Controller
             // ✅ Use your existing plan ID here (from Razorpay Dashboard)
             $existingPlanId = 'plan_RdxIziZm5vuIiP';
 
-            // (Optional) Create a Razorpay customer first
-            $customer = $api->customer->create([
-                'name'    => $request->input('name', 'Test User'),
-                'email'   => $request->input('email', 'test@example.com'),
-                'contact' => $request->input('contact', '9999999999'),
-            ]);
+            $customerId = $request->input('customer_id');
+
+            if (!$customerId) {
+                // 🧠 Use unique email/contact each time OR fetch from DB
+                $email = $request->input('email', 'test' . rand(100, 999) . '@example.com');
+                $customer = $api->customer->create([
+                    'name'    => $request->input('name', 'Test User'),
+                    'email'   => $email,
+                    'contact' => $request->input('contact', '9999999999'),
+                ]);
+                $customerId = $customer['id'];
+            }
+
 
             Log::info('Razorpay Customer Created:', (array)$customer);
 
@@ -108,7 +115,7 @@ class RazorPaymentController extends Controller
                 "plan_id" => $existingPlanId,
                 "customer_notify" => 1,
                 "total_count" => 12,
-                "customer_id" => $customer['id'], // link to this customer
+                "customer_id" => $customerId, // link to this customer
             ];
 
             Log::info('Creating Razorpay Subscription:', [$subscriptionData]);
@@ -119,7 +126,7 @@ class RazorPaymentController extends Controller
             return response()->json([
                 'status' => 'success',
                 'subscription_id' => $subscription['id'],
-                'customer_id' => $customer['id'],
+                'customer_id' => $customerId,
                 'plan_id' => $existingPlanId,
             ], 200);
         } catch (\Razorpay\Api\Errors\Error $e) {
