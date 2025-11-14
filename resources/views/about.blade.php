@@ -60,16 +60,30 @@
         class=" flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
         <main class="flex-grow max-w-3xl mx-auto px-6 py-12">
             <h1 class="text-3xl font-bold mb-6">About Us</h1>
-            <p>
-                We’re on a sweet revolution – minus the Sugar!
-                💡 "Why should healthy food taste boring? I wanted to change that!"
+            <div class="space-y-4 text-lg leading-relaxed">
+                <p>We’re on a sweet revolution – minus the Sugar!</p>
+                <p>💡 "Why should healthy food taste boring? I wanted to change that!"</p>
+                <p>A serial entrepreneur with a passion for health and wellness, Nikunj saw the massive gap in India’s
+                    dessert industry—where "healthy" often meant compromising on taste.</p>
+                <p>MonkMagic Desserts Private Limited was launched in Feb 2025 with the vision of making zero sugar the
+                    new normal.</p>
+                <p>He set out to create a brand where indulgence meets nutrition, ensuring that every scoop, sip, and
+                    bite of MonkMagic is as satisfying as its sugar-loaded counterparts, minus the guilt.</p>
 
-                A serial entrepreneur with a passion for health and wellness, Nikunj saw the massive gap in India’s
-                dessert industry—where "healthy" often meant compromising on taste.
 
-                He set out to create a brand where indulgence meets nutrition, ensuring that every scoop, sip, and bite
-                of MonkMagic is as satisfying as its sugar-loaded counterparts, minus the guilt.
-            </p>
+                <h2 class="text-2xl font-semibold mt-6">Company Details</h2>
+                <p><strong>MonkMagic Desserts Private Limited</strong></p>
+                <p><strong>GSTN:</strong> 27AASCM9705H1ZW</p>
+
+
+                <h2 class="text-2xl font-semibold mt-6">Contact Us</h2>
+                <p><strong>Corporate Office</strong><br>
+                    MonkMagic Desserts Private Limited<br>
+                    3, Shree Naman Plaza, SV Road, Kandivali West, Mumbai - 400067</p>
+                <p><strong>Email:</strong> hello@monkmagic.in<br>
+                    <strong>Phone:</strong> +91 9867806668
+                </p>
+            </div>
         </main>
 
     </div>
@@ -85,6 +99,8 @@
             <div class="flex justify-center flex-wrap gap-4 text-sm text-gray-600">
                 <a href="/privacy-policy" class="hover:underline">Privacy Policy</a>
                 <a href="/terms-and-conditions" class="hover:underline">Terms and Conditions</a>
+                <a href="/refund-and-cancellation"
+                class="hover:underline">Refund & Cancellation</a>
             </div>
         </div>
     </footer>

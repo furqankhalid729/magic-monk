@@ -39,6 +39,7 @@
                         class="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white font-medium">
                         About
                     </a>
+                    
                 </nav>
 
                 <!-- Mobile Menu Button -->
@@ -78,6 +79,8 @@
             <div class="flex justify-center flex-wrap gap-4 text-sm text-gray-600">
                 <a href="/privacy-policy" class="hover:underline">Privacy Policy</a>
                 <a href="/terms-and-conditions" class="hover:underline">Terms and Conditions</a>
+                <a href="/refund-and-cancellation"
+                class="hover:underline">Refund & Cancellation</a>
             </div>
         </div>
     </footer>

@@ -118,6 +118,8 @@
             <div class="flex space-x-6 text-sm">
                 <a href="/privacy-policy" class="hover:underline text-gray-700 dark:text-gray-300">Privacy Policy</a>
                 <a href="/terms-and-conditions" class="hover:underline text-gray-700 dark:text-gray-300">Terms & Conditions</a>
+                <a href="/refund-and-cancellation"
+                class="hover:underline">Refund & Cancellation</a>
             </div>
         </div>
     </footer>

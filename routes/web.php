@@ -23,3 +23,8 @@ Route::get('/privacy-policy', function () {
 Route::get('/terms-and-conditions', function () {
     return view('terms-and-condition');
 });
+
+
+Route::get('/refund-and-cancellation', function () {
+    return view('refund');
+});

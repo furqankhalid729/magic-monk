@@ -131,7 +131,7 @@ class RazorPaymentController extends Controller
                 'subscription_id' => $subscription['id'],
                 'customer_id' => $customerId,
                 'plan_id' => $existingPlanId,
-                'checkout_link' => $checkoutLink, // 👈 send this link to WhatsApp
+                'checkout_link' => $checkoutLink,
             ], 200);
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
