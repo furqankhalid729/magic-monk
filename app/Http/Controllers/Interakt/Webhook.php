@@ -173,6 +173,11 @@ class Webhook extends Controller
                             Cache::put("fast-sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($title == "Get WeFast in Mumbai") {
                             Cache::put("we-fast-{$customer['phone_number']}", true, now()->addMinutes(300));
+                        } else if($title == "Use My Birthday Offer" || $text == "Use Birthday Offer Now") {
+                            if (!Cache::has("birth-day-{$customer['phone_number']}")) {
+                                addCustomerCoupon("+91" . $customer['phone_number'], "birthday-offer");
+                                Cache::put("birth-day-{$customer['phone_number']}", true, now()->addMonth(6));
+                            }
                         }
 
                     case 'Text':
