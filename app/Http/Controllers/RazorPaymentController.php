@@ -123,15 +123,27 @@ class RazorPaymentController extends Controller
             $subscription = $api->subscription->create($subscriptionData);
             Log::info('Razorpay Subscription Created:', (array)$subscription);
 
-            // ✅ Razorpay returns a checkout link (short_url)
-            $checkoutLink = $subscription['short_url'] ?? null;
+            // ✅ Fetch the complete subscription details to get the short_url
+            $subscriptionId = $subscription['id'];
+            $completeSubscription = $api->subscription->fetch($subscriptionId);
+
+            Log::info('Complete Razorpay Subscription Details:', (array)$completeSubscription);
+
+            // ✅ Get the checkout link from the complete subscription details
+            $checkoutLink = $completeSubscription['short_url'] ?? null;
+
+            // ✅ If still no checkout link, you can construct one manually
+            if (!$checkoutLink) {
+                $checkoutLink = "https://rzp.io/i/" . $subscriptionId;
+            }
 
             return response()->json([
                 'status' => 'success',
-                'subscription_id' => $subscription['id'],
+                'subscription_id' => $subscriptionId,
                 'customer_id' => $customerId,
                 'plan_id' => $existingPlanId,
                 'checkout_link' => $checkoutLink,
+                'subscription_status' => $completeSubscription['status'] ?? $subscription['status'],
             ], 200);
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
