@@ -1,17 +1,20 @@
-import preset from './vendor/filament/support/tailwind.config.preset'
-
+/** @type {import('tailwindcss').Config} */
 export default {
-    presets: [preset],
-    content: [
-        './app/Filament/**/*.php',
-        './resources/views/filament/**/*.blade.php',
-        './vendor/filament/**/*.blade.php',
-        './resources/**/*.blade.php',
-        './resources/**/*.js',
-        './resources/**/*.vue',
-        './resources/**/*.jsx',
-        './resources/**/*.tsx',
-        './resources/**/*.css',
-        './resources/css/**/*.css',
-    ],
+  content: [
+    './resources/views/**/*.blade.php',
+    './resources/**/*.js',
+    './resources/**/*.vue',
+    './app/View/Components/**/*.php',
+    './app/Livewire/**/*.php',
+    './app/Filament/**/*.php',
+    './vendor/filament/**/*.blade.php',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'Poppins', 'Outfit', 'ui-sans-serif', 'system-ui'],
+      },
+    },
+  },
+  plugins: [],
 }

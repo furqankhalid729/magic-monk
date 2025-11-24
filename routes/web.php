@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\RazorPaymentController;
+use App\Http\Controllers\SignUpController;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -15,6 +17,8 @@ Route::get('/test-subscription', [RazorPaymentController::class, 'testSubscripti
 Route::get('/about', function () {
     return view('about');
 });
+
+Route::get('sign-up', [SignUpController::class, 'create'])->name('sign-up');
 
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');
