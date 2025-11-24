@@ -111,8 +111,8 @@ class RazorPaymentController extends Controller
             $subscriptionData = [
                 "plan_id" => $existingPlanId,
                 "total_count" => 12, // 12 billing cycles (e.g. months)
-                "customer_notify" => 1, // Razorpay will send link via SMS/email
-                "customer_id" => $customerId,
+                "customer_notify" => true, // Razorpay will send link via SMS/email
+                //"customer_id" => $customerId,
                 "notify_info" => [
                     "notify_email" => $request->input('email', 'nikunjb@monkmagic.in'),
                     "notify_phone" => $request->input('contact', '9999999999'),

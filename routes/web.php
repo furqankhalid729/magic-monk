@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\RazorPaymentController;
 use App\Http\Controllers\SignUpController;
+use App\Http\Controllers\Auth\AuthController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,6 +20,13 @@ Route::get('/about', function () {
 });
 
 Route::get('sign-up', [SignUpController::class, 'create'])->name('sign-up');
+
+// OAuth Routes
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+Route::get('/auth/instagram', [AuthController::class, 'redirectToInstagram'])->name('auth.instagram');
+Route::get('/auth/instagram/callback', [AuthController::class, 'handleInstagramCallback'])->name('auth.instagram.callback');
 
 Route::get('/privacy-policy', function () {
     return view('privacy-policy');

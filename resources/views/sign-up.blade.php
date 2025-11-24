@@ -8,7 +8,7 @@
             <h2 class="text-2xl font-semibold mb-6">Create Your Account</h2>
             <div class="flex gap-10 justify-center">
                 {{-- Google Login --}}
-                <a href="/auth/google" class=" py-3 rounded-lg block mb-4">
+                <a href="{{ route('auth.google') }}" class=" text-white p-4 rounded-lg block mb-4 transition-colors duration-300 ">
                     <svg class="max-w-[60px] max-h-[60px]" xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 32 32" data-name="Layer 1"
                         id="Layer_1">
                         <path d="M23.75,16A7.7446,7.7446,0,0,1,8.7177,18.6259L4.2849,22.1721A13.244,13.244,0,0,0,29.25,16"
@@ -27,7 +27,7 @@
                     </svg>
                 </a>
                 {{-- Instagram Login --}}
-                <a href="/auth/instagram" class=" text-white py-3 rounded-lg block">
+                <a href="{{ route('auth.instagram') }}" class=" text-white p-4 rounded-lg block transition-colors duration-300 ">
                     <svg class="max-w-[60px] max-h-[60px]" xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 32 32" fill="none">
                         <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#paint0_radial_87_7153)" />
                         <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#paint1_radial_87_7153)" />
