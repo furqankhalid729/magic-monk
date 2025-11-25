@@ -506,7 +506,7 @@ class Webhook extends Controller
 
                 $liveOffer = $location?->liveAdditionalOffers()->first();
                 Log::info('Live offer for location', ['location' => $location->building_name ?? null, 'liveOffer' => $liveOffer]);
-                $shippingFee = null;
+                $shippingFee = -1;
                 if ($liveOffer) {
                     if ($liveOffer->discount_type === 'percentage') {
                         $discountAmount = ($data['total_amount'] * $liveOffer->discount_value) / 100;
@@ -523,7 +523,7 @@ class Webhook extends Controller
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
                 if ($toCollect < 28) {
-                    if($shippingFee === null)
+                    if($shippingFee === -1)
                         $shippingFee =  $settings->fast_mover_shipping_rate ?? 21;
                     $toCollect = $toCollect + $shippingFee;
                     $totalAmount = $totalAmount + $shippingFee;
