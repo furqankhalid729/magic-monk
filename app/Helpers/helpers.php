@@ -222,7 +222,7 @@ function fastMoverGetDiscountAmount($customerPhone)
         if ($subscription) {
             return [
                 'discount_amount' => $subscription->discount_amount,
-                "adjustment" => ceil($subscription->price / $subscription->number_of_products),
+                "adjustment" => floor($subscription->price / $subscription->number_of_products),
                 "shipping_fee" => 0
             ];
         }
