@@ -222,7 +222,8 @@ function fastMoverGetDiscountAmount($customerPhone)
         if ($subscription) {
             return [
                 'discount_amount' => $subscription->discount_amount,
-                "adjustment" => $subscription->price / $subscription->number_of_products
+                "adjustment" => $subscription->price / $subscription->number_of_products,
+                "shipping_fee" => 0
             ];
         }
     }
@@ -236,7 +237,8 @@ function fastMoverGetDiscountAmount($customerPhone)
         DB::table('customer_coupons')->where('id', $coupon->id)->delete();
         return [
             'discount_amount' => $coupon->discount_amount,
-            "adjustment" => 0
+            "adjustment" => 0,
+            "shipping_fee" => null
         ];
     }
 

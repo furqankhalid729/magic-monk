@@ -506,6 +506,7 @@ class Webhook extends Controller
 
                 $liveOffer = $location?->liveAdditionalOffers()->first();
                 Log::info('Live offer for location', ['location' => $location->building_name ?? null, 'liveOffer' => $liveOffer]);
+                $shippingFee = null;
                 if ($liveOffer) {
                     if ($liveOffer->discount_type === 'percentage') {
                         $discountAmount = ($data['total_amount'] * $liveOffer->discount_value) / 100;
@@ -515,14 +516,15 @@ class Webhook extends Controller
                 } else {
                     $discountCheck = fastMoverGetDiscountAmount($commonData['customerPhone']);
                     $discountAmount = $firstTimeDiscount ? 79 : $discountCheck['discount_amount'] ?? 0;
+                    $shippingFee = $discountCheck['shipping_fee'] ?? null;
                 }
                 $discountAmount = floor($discountAmount);
                 $totalAmount = max(0, $data['total_amount'] - ( $discountAmount + ($discountCheck['adjustment'] ?? 0) ));
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
-                $shippingFee = 0;
                 if ($toCollect < 28) {
-                    $shippingFee = $settings->fast_mover_shipping_rate ?? 20;
+                    if($shippingFee === null)
+                        $shippingFee =  $settings->fast_mover_shipping_rate ?? 21;
                     $toCollect = $toCollect + $shippingFee;
                     $totalAmount = $totalAmount + $shippingFee;
                 }
@@ -548,7 +550,7 @@ class Webhook extends Controller
                     $itemList,
                     count($data['order_items'] ?? []),
                     (string) ($totalAmount - $shippingFee),
-                    (string) $discountAmount . " " . (string)($discountCheck['adjustment'] ?? ''),
+                    (string) $discountAmount . "\n " . (string)($discountCheck['adjustment'] ?? ''),
                     (string) $totalAmount,
                     (string) $shippingFee,
                     $paymentLink['payment_link']
