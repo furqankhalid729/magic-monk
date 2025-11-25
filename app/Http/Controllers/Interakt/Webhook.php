@@ -547,7 +547,7 @@ class Webhook extends Controller
                 ]);
 
                 $paymentLink = "";
-                if($totalAmount <= 0)
+                if($payment_status !== 'PAID')
                     $paymentLink = generatePaymentLink(
                         $commonData['name'],
                         ltrim($commonData['customerPhone'], '+'),
