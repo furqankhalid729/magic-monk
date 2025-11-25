@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('customer_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('customer_phone')->unique();
-            $table->string('subscription_id')->unique();
+            $table->string('subscription_id');
             $table->integer('order_count')->default(0);
             $table->string('status');
             $table->dateTime('start_at');
