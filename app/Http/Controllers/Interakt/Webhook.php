@@ -506,7 +506,7 @@ class Webhook extends Controller
 
                 $liveOffer = $location?->liveAdditionalOffers()->first();
                 Log::info('Live offer for location', ['location' => $location->building_name ?? null, 'liveOffer' => $liveOffer]);
-                $shippingFee = -1;
+                $shippingFee = null;
                 if ($liveOffer) {
                     if ($liveOffer->discount_type === 'percentage') {
                         $discountAmount = ($data['total_amount'] * $liveOffer->discount_value) / 100;
@@ -523,7 +523,7 @@ class Webhook extends Controller
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
                 if ($toCollect < 28) {
-                    if($shippingFee === -1)
+                    if($shippingFee === null)
                         $shippingFee =  $settings->fast_mover_shipping_rate ?? 21;
                     $toCollect = $toCollect + $shippingFee;
                     $totalAmount = $totalAmount + $shippingFee;
@@ -539,13 +539,16 @@ class Webhook extends Controller
                     $payment_status = 'PAID';
                 }
 
-                $paymentLink = generatePaymentLink(
-                    $commonData['name'],
-                    ltrim($commonData['customerPhone'], '+'),
-                    $data['customer_email'] ?? '',
-                    $totalAmount * 100,
-                    $commonData['orderNumber']
-                );
+                $$paymentLink = "";
+                if($totalAmount <= 0)
+                    $paymentLink = generatePaymentLink(
+                        $commonData['name'],
+                        ltrim($commonData['customerPhone'], '+'),
+                        $data['customer_email'] ?? '',
+                        $totalAmount * 100,
+                        $commonData['orderNumber']
+                    );
+
                 $new_payload = [
                     $itemList,
                     count($data['order_items'] ?? []),
@@ -553,11 +556,10 @@ class Webhook extends Controller
                     (string) $discountAmount . "\n " . (string)($discountCheck['adjustment'] ?? ''),
                     (string) $totalAmount,
                     (string) $shippingFee,
-                    $paymentLink['payment_link']
+                    $paymentLink['payment_link'] ?? "",
                 ];
 
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
-
                 if ($payment_status === 'PENDING') {
                     $response = sendInteraktMessage(
                         $commonData['customerPhone'],
@@ -566,12 +568,9 @@ class Webhook extends Controller
                         'backup_paymentfm',
                         null
                     );
-                    //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, $firstTimeDiscount);
                     Log::info('WhatsApp Pay response', ['response' => $response]);
-
                     $cacheKey = $response['id'] ?? null;
                     if ($cacheKey) {
-
                         $orderData = [
                             'customer_name' => $commonData['name'],
                             'order_id'      => $commonData['orderNumber'],
