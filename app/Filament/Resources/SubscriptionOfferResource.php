@@ -35,6 +35,11 @@ class SubscriptionOfferResource extends Resource
                 ->label('Price')
                 ->required(),
 
+            TextInput::make('discount_amount')
+                ->numeric()
+                ->label('Discount Amount')
+                ->required(),
+
             FileUpload::make('image_url')
                 ->label('Image')
                 ->image()

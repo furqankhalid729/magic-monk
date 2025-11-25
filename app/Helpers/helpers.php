@@ -4,6 +4,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Laravel\Telescope\Telescope;
 use App\Models\Location;
+use App\Models\CustomerSubscription;
+use App\Models\SubscriptionOffer;
 use App\Models\CustomerReferrals;
 use App\Models\WhatsAppPayReminder;
 use Illuminate\Support\Facades\Http;
@@ -196,6 +198,19 @@ if (!function_exists('updateReview')) {
 }
 function getDiscountAmount($customerPhone)
 {
+    $customerSubscription = CustomerSubscription::where('customer_phone', $customerPhone)
+        ->where('status', 'active')
+        ->first();
+    if ($customerSubscription && $customerSubscription->order_count > 0) {
+        $subscription = SubscriptionOffer::where('id', $customerSubscription->subscription_id)->first();
+        if ($subscription) {
+            return [
+                'discount_amount' => $subscription->discount_amount,
+                "adjustment" => $subscription->price / $subscription->number_of_products
+            ];
+            
+        }
+    }
     $coupon = DB::table('customer_coupons')
         ->join('coupons', 'customer_coupons.coupon_handle', '=', 'coupons.handle')
         ->where('customer_coupons.customer_phone', $customerPhone)
@@ -398,4 +413,21 @@ if(!function_exists('generateQrCode')) {
             'amount' => $amount,
         ];
     }
+}
+
+if(!function_exists('addCustomerSubscription')) {
+    function addCustomerSubscription($customerPhone, $subscriptionId, $orderCount = 0) {
+        $status = 'active';
+        $startAt = now();
+        $endAt = $startAt->copy()->addMonth();
+        CustomerSubscription::create([
+            'customer_phone' => $customerPhone,
+            'subscription_id' => $subscriptionId,
+            'status' => $status,
+            'start_at' => $startAt,
+            'end_at' => $endAt,
+            'order_count' => $orderCount,
+        ]);
+    }
+
 }

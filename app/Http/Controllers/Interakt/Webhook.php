@@ -178,6 +178,12 @@ class Webhook extends Controller
                                 addCustomerCoupon("+91" . $customer['phone_number'], "birthday-offer");
                                 Cache::put("birth-day-{$customer['phone_number']}", true, now()->addMonth(6));
                             }
+                        } else if ($title == "Smarter Monk Rs. 399"){
+                            addCustomerSubscription("+91".$customer['phone_number'], 2, 9);
+                        } else if ($title == "Starter Monk Rs. 199"){
+                            addCustomerSubscription("+91".$customer['phone_number'], 1, 4);
+                        } else if ($title == "Master Monk Rs. 899"){
+                            addCustomerSubscription("+91".$customer['phone_number'], 3, 21);
                         }
 
                     case 'Text':
@@ -507,7 +513,8 @@ class Webhook extends Controller
                         $discountAmount = (float) $liveOffer->discount_value;
                     }
                 } else {
-                    $discountAmount = $firstTimeDiscount ? 79 : getDiscountAmount($commonData['customerPhone']);
+                    $discountCheck = getDiscountAmount($commonData['customerPhone']);
+                    $discountAmount = $firstTimeDiscount ? 79 : $discountCheck['discount_amount'] ?? 0;
                 }
                 $discountAmount = floor($discountAmount);
                 $totalAmount = max(0, $data['total_amount'] - $discountAmount);
@@ -542,7 +549,7 @@ class Webhook extends Controller
                     $itemList,
                     count($data['order_items'] ?? []),
                     (string) ($totalAmount - $shippingFee),
-                    (string) $discountAmount,
+                    (string) $discountAmount . " " . (string)($discountCheck['adjustment'] ?? ''),
                     (string) $totalAmount,
                     (string) $shippingFee,
                     $paymentLink['payment_link']
