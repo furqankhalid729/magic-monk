@@ -539,7 +539,14 @@ class Webhook extends Controller
                     $payment_status = 'PAID';
                 }
 
-                $$paymentLink = "";
+                Log::info('Order details', [
+                    'totalAmount' => $totalAmount,
+                    'paidOnline' => $paidOnline,
+                    'toCollect' => $toCollect,
+                    'payment_status' => $payment_status
+                ]);
+
+                $paymentLink = "";
                 if($totalAmount <= 0)
                     $paymentLink = generatePaymentLink(
                         $commonData['name'],
