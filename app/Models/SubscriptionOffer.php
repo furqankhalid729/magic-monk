@@ -11,5 +11,6 @@ class SubscriptionOffer extends Model
         'price',
         'image_url',
         'number_of_products',
+        'discount_amount',
     ];
 }

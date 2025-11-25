@@ -517,8 +517,7 @@ class Webhook extends Controller
                     $discountAmount = $firstTimeDiscount ? 79 : $discountCheck['discount_amount'] ?? 0;
                 }
                 $discountAmount = floor($discountAmount);
-                $totalAmount = max(0, $data['total_amount'] - ( $discountAmount - ($discountCheck['adjustment'] ?? 0) ));
-                //$totalAmount = ceil($totalAmount);
+                $totalAmount = max(0, $data['total_amount'] - ( $discountAmount + ($discountCheck['adjustment'] ?? 0) ));
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
                 $shippingFee = 0;
