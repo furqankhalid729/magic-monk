@@ -560,7 +560,7 @@ class Webhook extends Controller
                     $itemList,
                     count($data['order_items'] ?? []),
                     (string) ($totalAmount - $shippingFee),
-                    (string) $discountAmount . "\n " . (string)($discountCheck['adjustment'] ?? ''),
+                    (string) $discountAmount . " + " . (string)($discountCheck['adjustment'] ?? ''),
                     (string) $totalAmount,
                     (string) $shippingFee,
                     $paymentLink['payment_link'] ?? "",
