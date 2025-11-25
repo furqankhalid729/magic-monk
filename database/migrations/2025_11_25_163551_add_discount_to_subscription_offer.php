@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('subscription_offer', function (Blueprint $table) {
+        Schema::table('subscription_offers', function (Blueprint $table) {
             $table->integer('discount_amount')->default(0);
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('subscription_offer', function (Blueprint $table) {
+        Schema::table('subscription_offers', function (Blueprint $table) {
             $table->dropColumn('discount_amount');
         });
     }
