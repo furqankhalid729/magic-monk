@@ -198,6 +198,22 @@ if (!function_exists('updateReview')) {
 }
 function getDiscountAmount($customerPhone)
 {
+    $coupon = DB::table('customer_coupons')
+        ->join('coupons', 'customer_coupons.coupon_handle', '=', 'coupons.handle')
+        ->where('customer_coupons.customer_phone', $customerPhone)
+        ->select('customer_coupons.id', 'coupons.discount_amount')
+        ->first();
+
+    if ($coupon) {
+        DB::table('customer_coupons')->where('id', $coupon->id)->delete();
+        return $coupon->discount_amount;
+    }
+
+    return 0;
+}
+
+function fastMoverGetDiscountAmount($customerPhone)
+{
     $customerSubscription = CustomerSubscription::where('customer_phone', $customerPhone)
         ->where('status', 'active')
         ->first();
@@ -208,7 +224,6 @@ function getDiscountAmount($customerPhone)
                 'discount_amount' => $subscription->discount_amount,
                 "adjustment" => $subscription->price / $subscription->number_of_products
             ];
-            
         }
     }
     $coupon = DB::table('customer_coupons')
@@ -219,7 +234,10 @@ function getDiscountAmount($customerPhone)
 
     if ($coupon) {
         DB::table('customer_coupons')->where('id', $coupon->id)->delete();
-        return $coupon->discount_amount;
+        return [
+            'discount_amount' => $coupon->discount_amount,
+            "adjustment" => 0
+        ];
     }
 
     return 0;
@@ -385,8 +403,9 @@ if (!function_exists(('generatePaymentLink'))) {
     }
 }
 
-if(!function_exists('generateQrCode')) {
-    function generateQrCode($amount, $description = 'Payment for order') {
+if (!function_exists('generateQrCode')) {
+    function generateQrCode($amount, $description = 'Payment for order')
+    {
         $razorpayKey = config('services.razorpay.key');
         $razorpaySecret = config('services.razorpay.secret');
 
@@ -415,8 +434,9 @@ if(!function_exists('generateQrCode')) {
     }
 }
 
-if(!function_exists('addCustomerSubscription')) {
-    function addCustomerSubscription($customerPhone, $subscriptionId, $orderCount = 0) {
+if (!function_exists('addCustomerSubscription')) {
+    function addCustomerSubscription($customerPhone, $subscriptionId, $orderCount = 0)
+    {
         $status = 'active';
         $startAt = now();
         $endAt = $startAt->copy()->addMonth();
@@ -429,5 +449,4 @@ if(!function_exists('addCustomerSubscription')) {
             'order_count' => $orderCount,
         ]);
     }
-
 }
