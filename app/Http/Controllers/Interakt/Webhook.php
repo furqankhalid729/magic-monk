@@ -562,7 +562,7 @@ class Webhook extends Controller
                     (string) ($totalAmount - $shippingFee),
                     (string) $discountAmount ,
                     (string) $totalAmount,
-                    (string) $shippingFee,
+                    (string) ($shippingFee ?? "0"),
                     $paymentLink['payment_link'] ?? "",
                 ];
 
