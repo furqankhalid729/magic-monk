@@ -94,25 +94,25 @@ class RazorPaymentController extends Controller
             // ✅ Use your existing plan ID here (from Razorpay Dashboard)
             $existingPlanId = 'plan_RdxIziZm5vuIiP';
 
-            $customerId = $request->input('customer_id');
+            // $customerId = $request->input('customer_id');
 
-            if (!$customerId) {
-                $email = $request->input('email', 'test' . rand(1000, 9999) . '@gmail.com');
-                $customer = $api->customer->create([
-                    'name'    => $request->input('name', 'Test User'),
-                    'email'   => $email,
-                    'contact' => $request->input('contact', '9999999999'),
-                ]);
-                $customerId = $customer['id'];
-                Log::info('Razorpay Customer Created:', (array)$customer);
-            }
+            // if (!$customerId) {
+            //     $email = $request->input('email', 'test' . rand(1000, 9999) . '@gmail.com');
+            //     $customer = $api->customer->create([
+            //         'name'    => $request->input('name', 'Test User'),
+            //         'email'   => $email,
+            //         'contact' => $request->input('contact', '9999999999'),
+            //     ]);
+            //     $customerId = $customer['id'];
+            //     Log::info('Razorpay Customer Created:', (array)$customer);
+            // }
 
             // ✅ Create subscription and tell Razorpay to send checkout link
             $subscriptionData = [
                 "plan_id" => $existingPlanId,
-                "total_count" => 12, // 12 billing cycles (e.g. months)
-                "customer_notify" => true, // Razorpay will send link via SMS/email
-                "customer_id" => $customerId,
+                "total_count" => 12,
+                "customer_notify" => true,
+                // "customer_id" => $customerId,
                 "notify_info" => [
                     "notify_email" => $request->input('email', 'nikunjb@monkmagic.in'),
                     "notify_phone" => $request->input('contact', '9999999999'),
@@ -140,7 +140,6 @@ class RazorPaymentController extends Controller
             return response()->json([
                 'status' => 'success',
                 'subscription_id' => $subscriptionId,
-                'customer_id' => $customerId,
                 'plan_id' => $existingPlanId,
                 'checkout_link' => $checkoutLink,
                 'subscription_status' => $completeSubscription['status'] ?? $subscription['status'],
