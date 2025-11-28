@@ -8,12 +8,14 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\InventoryTransferController;
 use App\Http\Controllers\RazorPaymentController;
 use App\Http\Controllers\RazorPayWebhookController;
+use App\Http\Controllers\CallerController;
 
 
 Route::post('/webhook', [Webhook::class, 'handle'])
     ->name('interakt.webhook.handle');
 
 Route::post('razorpay/webhook', [RazorPayWebhookController::class, 'handle']);
+Route::post('caller/webhook', [CallerController::class, 'handle']);
 
 // API Routes Group
 Route::controller(ApiController::class)->group(function () {
