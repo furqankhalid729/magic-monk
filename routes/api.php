@@ -16,6 +16,7 @@ Route::post('/webhook', [Webhook::class, 'handle'])
 
 Route::post('razorpay/webhook', [RazorPayWebhookController::class, 'handle']);
 Route::post('caller/webhook', [CallerController::class, 'handle']);
+Route::get('caller/webhook', [CallerController::class, 'handle']);
 
 // API Routes Group
 Route::controller(ApiController::class)->group(function () {
