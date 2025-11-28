@@ -23,8 +23,9 @@ Route::get('/about', function () {
 Route::get('sign-up', [SignUpController::class, 'create'])->name('sign-up');
 
 // OAuth Routes
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
-Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 Route::get('/auth/instagram', [AuthController::class, 'redirectToInstagram'])->name('auth.instagram');
 Route::get('/auth/instagram/callback', [AuthController::class, 'handleInstagramCallback'])->name('auth.instagram.callback');
