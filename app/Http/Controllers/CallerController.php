@@ -9,6 +9,7 @@ class CallerController extends Controller
 {
     public function handle(Request $request)
     {
+        Log::info('Caller webhook received a request.');
         // Log the incoming webhook payload for debugging
         Log::info('Received Caller webhook:', $request->all());
 
