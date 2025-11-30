@@ -405,6 +405,69 @@ if (!function_exists(('generatePaymentLink'))) {
     }
 }
 
+if (!function_exists(('generateSubscriptionPaymentLink'))) {
+    function generateSubscriptionPaymentLink( $phone, $email, $existingPlanId)
+    {
+        Log::info('Testing Razorpay Subscription Creation');
+
+        $razorpayKey = config('services.razorpay.key_test');
+        $razorpaySecret = config('services.razorpay.secret_test');
+
+        if (empty($razorpayKey) || empty($razorpaySecret)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Razorpay credentials not configured',
+            ], 500);
+        }
+
+        try {
+            $api = new \Razorpay\Api\Api($razorpayKey, $razorpaySecret);
+            // ✅ Use your existing plan ID here (from Razorpay Dashboard)
+            //$existingPlanId = 'plan_RdxIziZm5vuIiP';
+            // ✅ Create subscription and tell Razorpay to send checkout link
+            $subscriptionData = [
+                "plan_id" => $existingPlanId,
+                "customer_notify" => true,
+                "notify_info" => [
+                    "notify_email" => $email,
+                    "notify_phone" => $phone,
+                ],
+            ];
+            Log::info('Creating Razorpay Subscription:', [$subscriptionData]);
+            $subscription = $api->subscription->create($subscriptionData);
+            Log::info('Razorpay Subscription Created:', (array)$subscription);
+
+            $subscriptionId = $subscription['id'];
+            $completeSubscription = $api->subscription->fetch($subscriptionId);
+            Log::info('Complete Razorpay Subscription Details:', (array)$completeSubscription);
+            $checkoutLink = $completeSubscription['short_url'] ?? null;
+            if (!$checkoutLink) {
+                $checkoutLink = "https://rzp.io/i/" . $subscriptionId;
+            }
+            return response()->json([
+                'status' => 'success',
+                'subscription_id' => $subscriptionId,
+                'plan_id' => $existingPlanId,
+                'checkout_link' => $checkoutLink,
+                'subscription_status' => $completeSubscription['status'] ?? $subscription['status'],
+            ], 200);
+        } catch (\Razorpay\Api\Errors\Error $e) {
+            Log::error('Razorpay API Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Razorpay API Error: ' . $e->getMessage(),
+                'code' => $e->getCode(),
+            ], 400);
+        } catch (\Exception $e) {
+            Log::error('General Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'General Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+}
+
 if (!function_exists('generateQrCode')) {
     function generateQrCode($amount, $description = 'Payment for order')
     {

@@ -184,6 +184,23 @@ class Webhook extends Controller
                             addCustomerSubscription("+91".$customer['phone_number'], 1, 4);
                         } else if ($title == "Master Monk Rs. 899"){
                             addCustomerSubscription("+91".$customer['phone_number'], 3, 21);
+                        } else if ($title == "Master Monk (21 @ ₹899)"){
+                            
+                        } else if ($title == "Smarter Monk (9 @ ₹399)"){
+
+                        } else if ($title == "Starter Monk (4 @ ₹199)"){
+                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'],$customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
+                            $data = json_decode($paymentJson, true);
+                            $checkoutLink = $data['checkout_link'] ?? null;
+                            sendInteraktMessage(
+                                $customer['phone_number'],
+                                [
+                                    "Starter Monk", "4", "₹396", "₹199", $checkoutLink
+                                ],
+                                [asset('storage/starter.jpeg')],
+                                "subscriptionterms",
+                                ""
+                            );
                         }
 
                     case 'Text':

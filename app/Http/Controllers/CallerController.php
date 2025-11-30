@@ -16,9 +16,8 @@ class CallerController extends Controller
             $callFrom,
             [],
             ["https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/SzF1t1ZMPPlI/Monkmagic%20Logo%20Vertical.jpeg?se=2030-11-22T12%3A37%3A54Z&sp=rt&sv=2019-12-12&sr=b&sig=4N251CXyRvJ/SxhxvJdgrsdQgxHVaTuOT7%2B58hLP9PQ%3D"],
-            'missedcallmessage'
+            'aftermissedcall2'
         );
-
         return response()->json(['status' => 'success'], 200);
     }
 
