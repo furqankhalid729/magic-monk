@@ -450,7 +450,8 @@ class Webhook extends Controller
                                 ],
                                 [asset('storage/monster.jpeg')],
                                 "subscriptionterms",
-                                ""
+                                "",
+                                [$checkoutLink]
                             );
                         } else if ($text == "Smarter Monk (9 @ ₹399)") {
                             $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("SMARTER_MONK_PLAN_ID"));
@@ -468,7 +469,8 @@ class Webhook extends Controller
                                 ],
                                 [asset('storage/smarter.jpeg')],
                                 "subscriptionterms",
-                                ""
+                                "",
+                                [$checkoutLink]
                             );
                         } else if ($text == "Starter Monk (4 @ ₹199)") {
                             $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
@@ -486,7 +488,8 @@ class Webhook extends Controller
                                 ],
                                 [asset('storage/starter.jpeg')],
                                 "subscriptionterms",
-                                ""
+                                "",
+                                [$checkoutLink]
                             );
                         }
                         $message = "Text message received: \"$text\"";
