@@ -117,6 +117,10 @@ class RazorPaymentController extends Controller
                     "notify_email" => $request->input('email', 'nikunjb@monkmagic.in'),
                     "notify_phone" => $request->input('contact', '9999999999'),
                 ],
+                "notes" => [
+                    "note_key_1" => "Subscription for Magic Monk",
+                    "note_key_2" => "Customer ID: 12345",
+                ],
             ];
 
             Log::info('Creating Razorpay Subscription:', [$subscriptionData]);

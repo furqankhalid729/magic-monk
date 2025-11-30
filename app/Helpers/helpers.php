@@ -433,6 +433,10 @@ if (!function_exists(('generateSubscriptionPaymentLink'))) {
                     "notify_email" => $email,
                     "notify_phone" => $phone,
                 ],
+                "notes" => [
+                    "customer_phone" => $phone,
+                    "plan_id" => $existingPlanId,
+                ],
             ];
             Log::info('Creating Razorpay Subscription:', [$subscriptionData]);
             $subscription = $api->subscription->create($subscriptionData);
