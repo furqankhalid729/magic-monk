@@ -37,7 +37,6 @@ if (!function_exists('sendInteraktMessage')) {
                 "languageCode" => "en",
                 "headerValues" => $headerValues,
                 "bodyValues" => $bodyValues,
-                "buttonValues" => $buttonValues
             ]
         ];
 
