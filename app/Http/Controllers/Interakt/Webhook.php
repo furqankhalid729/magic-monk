@@ -480,8 +480,8 @@ class Webhook extends Controller
                                 [
                                     "Starter Monk",
                                     "4",
-                                    "₹396",
-                                    "₹199",
+                                    "396",
+                                    "199",
                                     $checkoutLink
                                 ],
                                 [asset('storage/starter.jpeg')],

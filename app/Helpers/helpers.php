@@ -454,11 +454,11 @@ if (!function_exists(('generateSubscriptionPaymentLink'))) {
             ];
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
-            return response()->json([
+            return [
                 'status' => 'error',
                 'message' => 'Razorpay API Error: ' . $e->getMessage(),
                 'code' => $e->getCode(),
-            ], 400);
+            ];
         } catch (\Exception $e) {
             Log::error('General Error: ' . $e->getMessage());
             return response()->json([
