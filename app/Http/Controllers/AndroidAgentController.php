@@ -113,7 +113,7 @@ class AndroidAgentController extends Controller
             addCustomerCoupon($order->customer_phone, '50-off');
         }
 
-        if ($orderCount == 1) {
+        //if ($orderCount == 1) {
             sendInteraktMessage(
                 $order->customer_phone,
                 [],
@@ -121,7 +121,7 @@ class AndroidAgentController extends Controller
                 'subscriptionnudge',
                 ""
             );
-        }
+        //}
 
         return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
     }
