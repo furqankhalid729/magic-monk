@@ -116,7 +116,7 @@ class AndroidAgentController extends Controller
         sendInteraktMessage(
             $order->customer_phone,
             [],
-            ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/MAXeQDrV2jsL/WhatsApp%20Image%202025-11-16%20at%2015.56.19.jpeg?se=2030-11-10T10%3A26%3A36Z&sp=rt&sv=2019-12-12&sr=b&sig=FrET1nh1R4%2BAfU9/WvHvlVWvmqCn7zBZ7jocjSIhQE4%3D'],
+            ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/xKT7AqEDWre5/WhatsApp%20Image%202025-11-30%20at%2022.54.36.jpeg?se=2030-11-24T17%3A27%3A56Z&sp=rt&sv=2019-12-12&sr=b&sig=DpRXcKLFggvb9RBYBZGYene8Wqp9/zWL45TxohoqwvU%3D'],
             'subscriptionnudge',
             ""
         );
