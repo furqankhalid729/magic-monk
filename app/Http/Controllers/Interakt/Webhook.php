@@ -444,11 +444,11 @@ class Webhook extends Controller
                                 [
                                     "Master Monk",
                                     "21",
-                                    "₹899",
-                                    "₹399",
+                                    "2079",
+                                    "899",
                                     $checkoutLink
                                 ],
-                                [asset('storage/starter.jpeg')],
+                                [asset('storage/monster.jpeg')],
                                 "subscriptionterms",
                                 ""
                             );
@@ -462,11 +462,11 @@ class Webhook extends Controller
                                 [
                                     "Smarter Monk",
                                     "9",
-                                    "₹399",
-                                    "₹199",
+                                    "891",
+                                    "399",
                                     $checkoutLink
                                 ],
-                                [asset('storage/starter.jpeg')],
+                                [asset('storage/smarter.jpeg')],
                                 "subscriptionterms",
                                 ""
                             );
