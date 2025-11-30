@@ -173,29 +173,31 @@ class Webhook extends Controller
                             Cache::put("fast-sample-{$customer['phone_number']}", true, now()->addMinutes(300));
                         } else if ($title == "Get WeFast in Mumbai") {
                             Cache::put("we-fast-{$customer['phone_number']}", true, now()->addMinutes(300));
-                        } else if($title == "Use My Birthday Offer" || $text == "Use Birthday Offer Now") {
+                        } else if ($title == "Use My Birthday Offer" || $text == "Use Birthday Offer Now") {
                             if (!Cache::has("birth-day-{$customer['phone_number']}")) {
                                 addCustomerCoupon("+91" . $customer['phone_number'], "birthday-offer");
                                 Cache::put("birth-day-{$customer['phone_number']}", true, now()->addMonth(6));
                             }
-                        } else if ($title == "Smarter Monk Rs. 399"){
-                            addCustomerSubscription("+91".$customer['phone_number'], 2, 9);
-                        } else if ($title == "Starter Monk Rs. 199"){
-                            addCustomerSubscription("+91".$customer['phone_number'], 1, 4);
-                        } else if ($title == "Master Monk Rs. 899"){
-                            addCustomerSubscription("+91".$customer['phone_number'], 3, 21);
-                        } else if ($title == "Master Monk (21 @ ₹899)"){
-                            
-                        } else if ($title == "Smarter Monk (9 @ ₹399)"){
-
-                        } else if ($title == "Starter Monk (4 @ ₹199)"){
-                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'],$customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
+                        } else if ($title == "Smarter Monk Rs. 399") {
+                            addCustomerSubscription("+91" . $customer['phone_number'], 2, 9);
+                        } else if ($title == "Starter Monk Rs. 199") {
+                            addCustomerSubscription("+91" . $customer['phone_number'], 1, 4);
+                        } else if ($title == "Master Monk Rs. 899") {
+                            addCustomerSubscription("+91" . $customer['phone_number'], 3, 21);
+                        } else if ($title == "Master Monk (21 @ ₹899)") {
+                        } else if ($title == "Smarter Monk (9 @ ₹399)") {
+                        } else if ($title == "Starter Monk (4 @ ₹199)") {
+                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
                             $data = json_decode($paymentJson, true);
                             $checkoutLink = $data['checkout_link'] ?? null;
                             sendInteraktMessage(
                                 $customer['phone_number'],
                                 [
-                                    "Starter Monk", "4", "₹396", "₹199", $checkoutLink
+                                    "Starter Monk",
+                                    "4",
+                                    "₹396",
+                                    "₹199",
+                                    $checkoutLink
                                 ],
                                 [asset('storage/starter.jpeg')],
                                 "subscriptionterms",
@@ -208,7 +210,7 @@ class Webhook extends Controller
                         if ($text === "I'll Pay UPI on Delivery") {
                             $phone = "+91" . $request->input('data.customer.phone_number');
                             $key = "we-fast-{$phone}";
-                            
+
                             $data = $request->input('data');
                             Log::info('UPI on Delivery confirmation received', $data);
                             $messageContextId = data_get($request->input('data'), 'message.message_context.id');
@@ -432,6 +434,25 @@ class Webhook extends Controller
                                     'refereePhone'  => "+91" . $refereePhone,
                                 ]);
                             }
+                        } else if ($text == "Master Monk (21 @ ₹899)") {
+                        } else if ($text == "Smarter Monk (9 @ ₹399)") {
+                        } else if ($text == "Starter Monk (4 @ ₹199)") {
+                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
+                            $data = json_decode($paymentJson, true);
+                            $checkoutLink = $data['checkout_link'] ?? null;
+                            sendInteraktMessage(
+                                $customer['phone_number'],
+                                [
+                                    "Starter Monk",
+                                    "4",
+                                    "₹396",
+                                    "₹199",
+                                    $checkoutLink
+                                ],
+                                [asset('storage/starter.jpeg')],
+                                "subscriptionterms",
+                                ""
+                            );
                         }
                         $message = "Text message received: \"$text\"";
                         break;
@@ -536,11 +557,11 @@ class Webhook extends Controller
                     $shippingFee = $discountCheck['shipping_fee'] ?? null;
                 }
                 $discountAmount = floor($discountAmount);
-                $totalAmount = max(0, $data['total_amount'] - ( $discountAmount + ($discountCheck['adjustment'] ?? 0) ));
+                $totalAmount = max(0, $data['total_amount'] - ($discountAmount + ($discountCheck['adjustment'] ?? 0)));
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
                 if ($toCollect < 28) {
-                    if($shippingFee === null)
+                    if ($shippingFee === null)
                         $shippingFee =  $settings->fast_mover_shipping_rate ?? 21;
                     $toCollect = $toCollect + $shippingFee;
                     $totalAmount = $totalAmount + $shippingFee;
@@ -564,7 +585,7 @@ class Webhook extends Controller
                 ]);
 
                 $paymentLink = "";
-                if($payment_status !== 'PAID')
+                if ($payment_status !== 'PAID')
                     $paymentLink = generatePaymentLink(
                         $commonData['name'],
                         ltrim($commonData['customerPhone'], '+'),
@@ -577,7 +598,7 @@ class Webhook extends Controller
                     $itemList,
                     count($data['order_items'] ?? []),
                     (string) ($totalAmount - $shippingFee),
-                    (string) $discountAmount ,
+                    (string) $discountAmount,
                     (string) $totalAmount,
                     (string) ($shippingFee ?? "0"),
                     $paymentLink['payment_link'] ?? "",
