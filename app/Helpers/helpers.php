@@ -427,6 +427,7 @@ if (!function_exists(('generateSubscriptionPaymentLink'))) {
             // ✅ Create subscription and tell Razorpay to send checkout link
             $subscriptionData = [
                 "plan_id" => $existingPlanId,
+                "total_count" => 1,
                 "customer_notify" => true,
                 "notify_info" => [
                     "notify_email" => $email,
