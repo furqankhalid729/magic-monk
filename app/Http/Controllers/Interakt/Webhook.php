@@ -470,8 +470,9 @@ class Webhook extends Controller
                             );
                         } else if ($text == "Starter Monk (4 @ ₹199)") {
                             $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
+                            Log::info('Generated payment link for Starter Monk', ['paymentJson' => $paymentJson]);
                             $data = json_decode($paymentJson, true);
-                            $checkoutLink = $paymentJson['checkout_link'] ?? null;
+                            $checkoutLink = $paymentJson['checkout_link'];
                             sendInteraktMessage(
                                 "+91".$customer['phone_number'],
                                 [

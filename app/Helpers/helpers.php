@@ -406,7 +406,7 @@ if (!function_exists(('generatePaymentLink'))) {
 }
 
 if (!function_exists(('generateSubscriptionPaymentLink'))) {
-    function generateSubscriptionPaymentLink( $phone, $email, $existingPlanId)
+    function generateSubscriptionPaymentLink($phone, $email, $existingPlanId)
     {
         Log::info('Testing Razorpay Subscription Creation');
 
@@ -445,13 +445,13 @@ if (!function_exists(('generateSubscriptionPaymentLink'))) {
             if (!$checkoutLink) {
                 $checkoutLink = "https://rzp.io/i/" . $subscriptionId;
             }
-            return response()->json([
+            return [
                 'status' => 'success',
                 'subscription_id' => $subscriptionId,
                 'plan_id' => $existingPlanId,
                 'checkout_link' => $checkoutLink,
                 'subscription_status' => $completeSubscription['status'] ?? $subscription['status'],
-            ], 200);
+            ];
         } catch (\Razorpay\Api\Errors\Error $e) {
             Log::error('Razorpay API Error: ' . $e->getMessage());
             return response()->json([
