@@ -410,8 +410,8 @@ if (!function_exists(('generateSubscriptionPaymentLink'))) {
     {
         Log::info('Testing Razorpay Subscription Creation');
 
-        $razorpayKey = config('services.razorpay.key_test');
-        $razorpaySecret = config('services.razorpay.secret_test');
+        $razorpayKey = config('services.razorpay.key');
+        $razorpaySecret = config('services.razorpay.secret');
 
         if (empty($razorpayKey) || empty($razorpaySecret)) {
             return response()->json([
