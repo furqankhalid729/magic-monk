@@ -435,11 +435,43 @@ class Webhook extends Controller
                                 ]);
                             }
                         } else if ($text == "Master Monk (21 @ ₹899)") {
+                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("MASTER_MONK_PLAN_ID"));
+                            $data = json_decode($paymentJson, true);
+                            $checkoutLink = $data['checkout_link'] ?? null;
+                            sendInteraktMessage(
+                                "+91".$customer['phone_number'],
+                                [
+                                    "Master Monk",
+                                    "21",
+                                    "₹899",
+                                    "₹399",
+                                    $checkoutLink
+                                ],
+                                [asset('storage/starter.jpeg')],
+                                "subscriptionterms",
+                                ""
+                            );
                         } else if ($text == "Smarter Monk (9 @ ₹399)") {
+                            $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("SMARTER_MONK_PLAN_ID"));
+                            $data = json_decode($paymentJson, true);
+                            $checkoutLink = $data['checkout_link'] ?? null;
+                            sendInteraktMessage(
+                                "+91".$customer['phone_number'],
+                                [
+                                    "Smarter Monk",
+                                    "9",
+                                    "₹399",
+                                    "₹199",
+                                    $checkoutLink
+                                ],
+                                [asset('storage/starter.jpeg')],
+                                "subscriptionterms",
+                                ""
+                            );
                         } else if ($text == "Starter Monk (4 @ ₹199)") {
                             $paymentJson = generateSubscriptionPaymentLink($customer['phone_number'], $customer['email'] ?? '', env("STARTER_MONK_PLAN_ID"));
                             $data = json_decode($paymentJson, true);
-                            $checkoutLink = $data['checkout_link'] ?? null;
+                            $checkoutLink = $paymentJson['checkout_link'] ?? null;
                             sendInteraktMessage(
                                 "+91".$customer['phone_number'],
                                 [
