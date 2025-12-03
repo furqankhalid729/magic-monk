@@ -597,7 +597,7 @@ class Webhook extends Controller
                     }
                 } else {
                     $discountCheck = fastMoverGetDiscountAmount($commonData['customerPhone']);
-                    $discountAmount = $firstTimeDiscount ? 79 : $discountCheck['discount_amount'] ?? 0;
+                    $discountAmount = $firstTimeDiscount ? 49 : $discountCheck['discount_amount'] ?? 0;
                     $shippingFee = $discountCheck['shipping_fee'] ?? null;
                 }
                 $discountAmount = floor($discountAmount);
