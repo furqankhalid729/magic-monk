@@ -21,7 +21,7 @@ Route::get('/about', function () {
     return view('about');
 });
 
-Route::get('sign-up', [SignUpController::class, 'create'])->name('sign-up');
+Route::get('sign-up', [SignUpController::class, 'create'])->name('login');
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::post('/user-info/store', [DashboardController::class, 'store'])->name('user.info.store')->middleware('auth');
 // OAuth Routes
