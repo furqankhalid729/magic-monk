@@ -6,6 +6,7 @@ use App\Http\Controllers\RazorPaymentController;
 use App\Http\Controllers\SignUpController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\User\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,9 +22,9 @@ Route::get('/about', function () {
 });
 
 Route::get('sign-up', [SignUpController::class, 'create'])->name('sign-up');
-
+Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+Route::post('/user-info/store', [DashboardController::class, 'store'])->name('user.info.store')->middleware('auth');
 // OAuth Routes
-
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
@@ -37,7 +38,6 @@ Route::get('/privacy-policy', function () {
 Route::get('/terms-and-conditions', function () {
     return view('terms-and-condition');
 });
-
 
 Route::get('/refund-and-cancellation', function () {
     return view('refund');
