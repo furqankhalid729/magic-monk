@@ -23,6 +23,12 @@
                 class="w-full px-4 py-2 border rounded-lg bg-gray-100 cursor-not-allowed text-gray-700 focus:outline-none">
         </div>
 
+        <div>
+            <label class="block text-gray-700 font-medium mb-1">Phone number</label>
+            <input type="text" name="phone_number" value="{{ old('phone_number', auth()->user()->phone_number) }}"
+                class="w-full px-4 py-2 border rounded-lg bg-white text-gray-700 ">
+        </div>
+
         <!-- Birthdate -->
         <div>
             <label class="block text-gray-700 font-medium mb-1">Birthdate</label>

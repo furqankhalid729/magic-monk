@@ -23,6 +23,7 @@ class DashboardController extends Controller
             'date_of_birth' => 'required|date',
             'gender' => 'required|string',
             'terms' => 'accepted',
+            'phone_number' => 'nullable|string',
         ], [
             'terms.accepted' => 'You must agree to the terms before submitting.',
         ]);
@@ -36,6 +37,7 @@ class DashboardController extends Controller
             'email'      => $request->email,
             'date_of_birth'  => $request->date_of_birth,
             'gender'     => $request->gender,
+            'phone_number' => $request->phone_number,
         ]);
 
         return redirect()->back()->with('success', 'Your information has been updated successfully!');
