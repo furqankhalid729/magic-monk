@@ -19,10 +19,16 @@ class User extends Authenticatable implements FilamentUser
         'provider',
         'provider_id',
         'avatar',
-        'role', // make sure you have this column
+        'role',
         'date_of_birth',
         'gender',
         'phone_number',
+
+        'building_name',
+        'sub_locality',
+        'city',
+        'state',
+        'address',
     ];
 
     protected $hidden = [

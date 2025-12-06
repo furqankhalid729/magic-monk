@@ -24,6 +24,7 @@ Route::get('/about', function () {
 Route::get('sign-up', [SignUpController::class, 'create'])->name('login');
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::post('/user-info/store', [DashboardController::class, 'store'])->name('user.info.store')->middleware('auth');
+Route::post('/user-info/update-field', [DashboardController::class, 'updateField'])->name('user.info.update-field')->middleware('auth');
 // OAuth Routes
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
