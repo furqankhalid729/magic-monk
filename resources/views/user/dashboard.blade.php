@@ -64,7 +64,8 @@
 
                 <!-- Next Button -->
                 <button type="button" @click="step = 2"
-                    class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition mt-4">
+                    class="w-full py-3 text-white font-semibold rounded-lg hover:opacity-90 transition mt-4"
+                    style="background-color: #964eb0;">
                     Next
                 </button>
             </div>
@@ -98,7 +99,8 @@
                     <button type="button" @click="step = 1"
                         class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Back</button>
                     <button type="submit"
-                        class="px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition">Submit</button>
+                        class="px-4 py-3 text-white font-semibold rounded-lg hover:opacity-90 transition"
+                        style="background-color: #964eb0;">Submit</button>
                 </div>
             </div>
 

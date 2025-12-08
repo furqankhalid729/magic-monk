@@ -604,7 +604,7 @@ class Webhook extends Controller
                 $totalAmount = max(0, $data['total_amount'] - ($discountAmount + ($discountCheck['adjustment'] ?? 0)));
                 $paidOnline = $payment_status === 'PAID' ? $totalAmount : 0;
                 $toCollect  = $totalAmount - $paidOnline;
-                if ($toCollect < 50) {
+                if ($toCollect < 28) {
                     if ($shippingFee === null)
                         $shippingFee =  $settings->fast_mover_shipping_rate ?? 21;
                     $toCollect = $toCollect + $shippingFee;

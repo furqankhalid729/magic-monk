@@ -7,6 +7,7 @@ use App\Http\Controllers\SignUpController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\User\SurveyController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +26,9 @@ Route::get('sign-up', [SignUpController::class, 'create'])->name('login');
 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::post('/user-info/store', [DashboardController::class, 'store'])->name('user.info.store')->middleware('auth');
 Route::post('/user-info/update-field', [DashboardController::class, 'updateField'])->name('user.info.update-field')->middleware('auth');
+
+Route::get('survey', [SurveyController::class, 'index'])->name('survey')->middleware('auth');
+Route::post('/survey/submit', [SurveyController::class, 'submit'])->name('survey.store')->middleware('auth');
 // OAuth Routes
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
