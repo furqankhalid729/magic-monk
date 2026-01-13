@@ -16,7 +16,7 @@ use Carbon\Carbon;
 use Razorpay\Api\Api;
 
 if (!function_exists('sendInteraktMessage')) {
-    function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null, )
+    function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null,)
     {
         $apiKey = env('INTERAKT_API_KEY');
         $campaignId = $campaignId ?? null;
@@ -52,40 +52,40 @@ if (!function_exists('sendInteraktMessage')) {
     }
 }
 function sendInteraktMessageWithButton($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null, $buttonValues = [])
-    {
-        $apiKey = env('INTERAKT_API_KEY');
-        $campaignId = $campaignId ?? null;
+{
+    $apiKey = env('INTERAKT_API_KEY');
+    $campaignId = $campaignId ?? null;
 
-        $client = new Client();
+    $client = new Client();
 
-        $headers = [
-            'Authorization' => 'Basic ' . $apiKey,
-            'Content-Type' => 'application/json',
-        ];
+    $headers = [
+        'Authorization' => 'Basic ' . $apiKey,
+        'Content-Type' => 'application/json',
+    ];
 
-        $body = [
-            "fullPhoneNumber" => $phoneNumber,
-            "campaignId" => $campaignId,
-            "type" => "Template",
-            "template" => [
-                "name" => $templateName,
-                "languageCode" => "en",
-                "headerValues" => $headerValues,
-                "bodyValues" => $bodyValues,
-                "buttonValues" => $buttonValues
-            ]
-        ];
+    $body = [
+        "fullPhoneNumber" => $phoneNumber,
+        "campaignId" => $campaignId,
+        "type" => "Template",
+        "template" => [
+            "name" => $templateName,
+            "languageCode" => "en",
+            "headerValues" => $headerValues,
+            "bodyValues" => $bodyValues,
+            "buttonValues" => $buttonValues
+        ]
+    ];
 
 
-        $response = Http::withHeaders($headers)
-            ->post(env('INTERAKT_MESSAGE_API_URL'), $body);
+    $response = Http::withHeaders($headers)
+        ->post(env('INTERAKT_MESSAGE_API_URL'), $body);
 
-        if ($response->successful()) {
-            return $response->json();
-        } else {
-            return ['error' => $response->body()];
-        }
+    if ($response->successful()) {
+        return $response->json();
+    } else {
+        return ['error' => $response->body()];
     }
+}
 
 if (!function_exists('sendWhatsAppPay')) {
     function sendWhatsAppPay($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'paymentfm_with_pod2', $campaignId = null, $orderItems = [], $totalAmount = 0, $orderId = "order67557", $address, $discountAmount)
@@ -277,7 +277,24 @@ function fastMoverGetDiscountAmount($customerPhone)
         ];
     }
 
-    return 0;
+    return [
+        'discount_amount' => 0,
+        "adjustment" => 0,
+        "shipping_fee" => 20
+    ];
+}
+
+function fastMoverGetFirstTimeDiscount($orderItems, $location)
+{
+    if ($location->buy_1_get_1_offer) {
+        if (count($orderItems) > 1) {
+            $prices = array_column($orderItems, 'price');
+            $lowestPrice = min($prices);
+            return $lowestPrice;
+        }
+    } else {
+        return 49;
+    }
 }
 
 function nextWorkingDay(Carbon $date)

@@ -92,6 +92,9 @@ class LocationResource extends Resource
                 DatePicker::make('offer_live_until')
                     ->label('Offer LIVE Until')
                     ->nullable(),
+
+                Toggle::make('buy_1_get_1_offer')
+                    ->label('Buy 1 Get 1 Offer'),
             ]);
     }
 

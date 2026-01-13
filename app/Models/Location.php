@@ -23,6 +23,8 @@ class Location extends Model
         'city',
         'state',
         'pincode',
+
+        'buy_1_get_1_offer'
     ];
 
     public function agent()
