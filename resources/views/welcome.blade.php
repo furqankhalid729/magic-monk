@@ -381,7 +381,7 @@
                         MonkMagic makes dessert decisions simple: satisfy cravings with clean ingredients, bold flavours,
                         and no compromise on fun.
                     </p>
-                    <a href="{{ url('/instagram-login') }}"
+                    <a href="{{ route('auth.instagram') }}"
                         class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#515BD4] px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:translate-y-1">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                             <path
