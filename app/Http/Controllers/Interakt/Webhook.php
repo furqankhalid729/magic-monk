@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use App\Services\ReferralService;
 use App\Models\WhatsAppPayReminder;
 use App\Models\Setting;
+use App\Models\ExhibitionData;
 
 class Webhook extends Controller
 {
@@ -35,6 +36,16 @@ class Webhook extends Controller
                 $messageType = $request->input('data.message.message_content_type');
                 $customer = $request->input('data.customer');
                 $traits = $customer['traits'] ?? [];
+                // if(Cache::has("rls-{$customer['phone_number']}")){
+                //     ExhibitionData::create([
+                //         'customer_phone' => "+91" . $customer['phone_number'],
+                //         'customer_name' => $traits['RealName'] ?? $traits['name'] ?? null,
+                //         'customer_email' => $traits['email'] ?? null,
+                //         'picked_product' => $traits['FreeIcecream'] ?? null,
+                //     ]);
+                //     Cache::forget("rls-{$customer['phone_number']}");
+                // }
+
                 updateReminderStatus("+91" . $request->input('data.customer.phone_number'));
                 switch ($messageType) {
                     case 'Location':

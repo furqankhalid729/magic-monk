@@ -16,9 +16,6 @@
 
 <body>
 
-    {{-- Global Header --}}
-    @include('components.sign-up-header')
-
     {{-- Main Content --}}
     <main class="main-content">
         @yield('content')
