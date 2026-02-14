@@ -126,7 +126,7 @@
 
         @media (max-width: 768px) {
             .frame-window {
-                border-radius: 2rem;
+                border-radius: 1rem;
             }
 
             .frame-item {
@@ -147,36 +147,44 @@
             .frame-sticky {
                 position: relative;
                 min-height: auto;
+                padding: 3rem 0;
             }
 
             .frame-window {
                 overflow-x: auto;
                 overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 1rem;
             }
 
             .frame-track {
                 scroll-snap-type: x mandatory;
-                overflow-x: visible;
                 width: max-content;
-                padding-bottom: 2.5rem;
+                padding: 1rem 0 2rem;
                 transform: none !important;
+                gap: 1rem;
             }
 
             .frame-item {
                 scroll-snap-align: center;
                 opacity: 1 !important;
                 transform: none !important;
-                flex: 0 0 200px;
-                width: 200px;
+                flex: 0 0 75vw;
+                width: 75vw;
+                max-width: 280px;
             }
 
             .frame-item img {
-                height: 240px;
+                height: 280px;
             }
 
             .frame-heading span {
                 opacity: 1 !important;
                 transform: none !important;
+            }
+
+            .frame-heading {
+                font-size: 1.75rem !important;
             }
         }
 
