@@ -193,6 +193,172 @@
                 transform: none !important;
             }
         }
+
+        /* FAQ Section Styles */
+        .faq-section {
+            background: #fdf6f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .faq-container {
+            position: relative;
+            min-height: 500px;
+        }
+
+        .faq-card {
+            position: absolute;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 200px;
+            max-width: 280px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .faq-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .faq-card-content {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .faq-card-text {
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .faq-card-arrow {
+            flex-shrink: 0;
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Card colors */
+        .faq-card-mint { background: #b8f0e6; }
+        .faq-card-mint .faq-card-arrow { color: #0d9488; }
+
+        .faq-card-yellow { background: #fef08a; }
+        .faq-card-yellow .faq-card-arrow { color: #854d0e; }
+
+        .faq-card-peach { background: #fecaca; }
+        .faq-card-peach .faq-card-arrow { color: #dc2626; }
+
+        .faq-card-purple { background: #ddd6fe; }
+        .faq-card-purple .faq-card-arrow { color: #7c3aed; }
+
+        .faq-card-orange { background: #fed7aa; }
+        .faq-card-orange .faq-card-arrow { color: #ea580c; }
+
+        .faq-card-pink { background: #fbcfe8; }
+        .faq-card-pink .faq-card-arrow { color: #db2777; }
+
+        /* Card positions */
+        .faq-card-1 { top: 10%; left: 5%; transform: rotate(-3deg); }
+        .faq-card-2 { top: 5%; left: 35%; transform: rotate(1deg); }
+        .faq-card-3 { top: 15%; right: 5%; transform: rotate(5deg); }
+        .faq-card-4 { top: 45%; left: 8%; transform: rotate(4deg); }
+        .faq-card-5 { top: 50%; left: 38%; transform: rotate(-2deg); }
+        .faq-card-6 { top: 55%; right: 8%; transform: rotate(3deg); }
+
+        /* Modal styles */
+        .faq-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .faq-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .faq-modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        .faq-modal.active .faq-modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .faq-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+
+        .faq-modal-close:hover {
+            color: #374151;
+        }
+
+        .faq-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-right: 2rem;
+            color: #ca8a04;
+        }
+
+        .faq-modal-body {
+            color: #4b5563;
+            line-height: 1.75;
+        }
+
+        @media (max-width: 768px) {
+            .faq-container {
+                min-height: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .faq-card {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .faq-card:hover {
+                transform: scale(1.02) !important;
+            }
+        }
     </style>
 @endpush
 
@@ -333,6 +499,88 @@
             </div>
         </section>
 
+        <!-- FAQ Section -->
+        <section class="faq-section py-16 md:pt-10">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-5xl font-black text-[#111] leading-tight">
+                        Your Snack<br>Confessions, Answered
+                    </h2>
+                </div>
+
+                <div class="faq-container">
+                    <!-- Card 1 - Mint -->
+                    <div class="faq-card faq-card-mint faq-card-1" data-faq="1">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">is it really zero sugar? or just marketing?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 - Yellow -->
+                    <div class="faq-card faq-card-yellow faq-card-2" data-faq="2">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">but what is monk fruit anyway?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 7L7 17M7 17V7M7 17H17"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 - Peach -->
+                    <div class="faq-card faq-card-peach faq-card-3" data-faq="3">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">can i eat the whole tub in one sitting?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 - Purple -->
+                    <div class="faq-card faq-card-purple faq-card-4" data-faq="4">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">what's with all the crazy flavours?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 5 - Orange -->
+                    <div class="faq-card faq-card-orange faq-card-5" data-faq="5">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">so do you just sell ice cream, or what?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 7L7 17M7 17V7M7 17H17"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 - Pink -->
+                    <div class="faq-card faq-card-pink faq-card-6" data-faq="6">
+                        <div class="faq-card-content">
+                            <span class="faq-card-text">what does "no guilt" really mean?</span>
+                            <svg class="faq-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Modal -->
+        <div id="faq-modal" class="faq-modal">
+            <div class="faq-modal-content">
+                <span class="faq-modal-close">&times;</span>
+                <h3 id="faq-modal-title" class="faq-modal-title"></h3>
+                <p id="faq-modal-body" class="faq-modal-body"></p>
+            </div>
+        </div>
+
         @include('components.static-footer')
     </div>
 
@@ -425,6 +673,68 @@
                     iconUnmuted.classList.toggle('hidden', video.muted);
                 });
             }
+
+            // FAQ Modal functionality
+            const faqData = {
+                1: {
+                    title: "Is it really zero sugar? Or just marketing?",
+                    body: "100% zero sugar. No hidden sweeteners, no artificial nonsense. We use monk fruit extract—a natural sweetener that's been used in Asia for centuries. It's 200x sweeter than sugar but has zero calories and zero glycemic impact. So yes, it's the real deal. Your taste buds get the party, your body gets the peace."
+                },
+                2: {
+                    title: "But what is monk fruit anyway?",
+                    body: "Monk fruit (Luo Han Guo) is a small melon native to Southeast Asia. Buddhist monks have been using it for centuries—hence the name. It contains natural compounds called mogrosides that taste incredibly sweet but don't spike blood sugar. It's nature's cheat code for guilt-free sweetness."
+                },
+                3: {
+                    title: "Can I eat the whole tub in one sitting?",
+                    body: "Look, we're not here to judge. Our desserts are made with clean ingredients—zero sugar, no artificial preservatives, and real nutrients. But even good things deserve moderation. That said, if you finish a tub at midnight... we understand. We've all been there."
+                },
+                4: {
+                    title: "What's with all the crazy flavours?",
+                    body: "Because boring is not on our menu. Indian desserts are legendary—Elaichi Rabdi, Lonavala Fudge—but so are global favorites like Belgian Dark and Blueberry Cheesecake. We believe healthy shouldn't mean limited. Every craving deserves a guilt-free answer."
+                },
+                5: {
+                    title: "So do you just sell ice cream, or what?",
+                    body: "We started with ice cream, but we're building a whole dessert revolution. Think fudges, chocolates, spreads—all zero sugar, all delicious. MonkMagic is about proving that 'healthy dessert' doesn't have to be an oxymoron. Stay tuned, more magic is coming."
+                },
+                6: {
+                    title: "What does \"no guilt\" really mean?",
+                    body: "It means eating dessert without the mental math. No counting calories, no sugar crash, no regret spiral at 2 AM. Our desserts are made so you can actually enjoy them—not as a 'cheat' but as part of your everyday life. That's the monk way: balance, not sacrifice."
+                }
+            };
+
+            const modal = document.getElementById('faq-modal');
+            const modalTitle = document.getElementById('faq-modal-title');
+            const modalBody = document.getElementById('faq-modal-body');
+            const modalClose = document.querySelector('.faq-modal-close');
+            const faqCards = document.querySelectorAll('.faq-card');
+
+            faqCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const faqId = card.dataset.faq;
+                    const data = faqData[faqId];
+                    if (data) {
+                        modalTitle.textContent = data.title;
+                        modalBody.textContent = data.body;
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+            });
+
+            const closeModal = () => {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            };
+
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
         });
     </script>
 @endsection
