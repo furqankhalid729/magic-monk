@@ -101,4 +101,29 @@ class RazorPayWebhookController extends Controller
             ]);
         }
     }
+
+    public function generatePayment(Request $request)
+    {
+        $product = $request->query('product');
+
+        if (!empty($product)) {
+            $product = json_decode('"' . $product . '"');
+
+            // Extract numbers (price)
+            preg_match('/\d+(\.\d+)?/', $product, $matches);
+
+            $price = $matches[0] ?? null;
+            $url = generatePaymentLink("test","","test@gmail.com", $price, "387643764");
+            return response()->json([
+                'message' => 'Product is not empty',
+                'product' => $product,
+                'price' => $price,
+                'payment_url' => $url
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Product is empty'
+        ]);
+    }
 }

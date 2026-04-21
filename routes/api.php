@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Interakt\Webhook;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AndroidAgentController;
-use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\InventoryTransferController;
 use App\Http\Controllers\RazorPaymentController;
 use App\Http\Controllers\RazorPayWebhookController;
@@ -15,6 +14,7 @@ Route::post('/webhook', [Webhook::class, 'handle'])
     ->name('interakt.webhook.handle');
 
 Route::post('razorpay/webhook', [RazorPayWebhookController::class, 'handle']);
+Route::get('razorpay/generate-payment', [RazorPayWebhookController::class, 'generatePayment']);
 Route::post('caller/webhook', [CallerController::class, 'handle']);
 Route::get('caller/webhook', [CallerController::class, 'handle']);
 
