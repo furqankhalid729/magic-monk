@@ -113,7 +113,7 @@ class RazorPayWebhookController extends Controller
             preg_match('/\d+(\.\d+)?/', $product, $matches);
 
             $price = $matches[0] ?? null;
-            $url = generatePaymentLink("test","","test@gmail.com", $price, "387643764");
+            $url = generatePaymentLink("test","","test@gmail.com", $price * 100, "387643764");
             return response()->json([
                 'message' => 'Product is not empty',
                 'product' => $product,
