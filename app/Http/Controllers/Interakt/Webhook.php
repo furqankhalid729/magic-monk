@@ -665,7 +665,7 @@ class Webhook extends Controller
                         $commonData['customerPhone'],
                         $new_payload,
                         [$commonData['headerImage']],
-                        'backup_paymentfm',
+                        'feedback_with_nps',
                         null
                     );
                     Log::info('WhatsApp Pay response', ['response' => $response]);
@@ -858,7 +858,7 @@ class Webhook extends Controller
                 $commonData['customerPhone'],
                 $new_payload,
                 [$commonData['headerImage']],
-                'backup_paymentfm',
+                'feedback_with_nps',
                 null
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
@@ -1038,7 +1038,7 @@ class Webhook extends Controller
                 $commonData['customerPhone'],
                 $new_payload,
                 [$commonData['headerImage']],
-                'backup_paymentfm',
+                'feedback_with_nps',
                 null
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
@@ -1197,7 +1197,7 @@ class Webhook extends Controller
                 $commonData['customerPhone'],
                 $new_payload,
                 [$commonData['headerImage']],
-                'backup_paymentfm',
+                'feedback_with_nps',
                 null
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
