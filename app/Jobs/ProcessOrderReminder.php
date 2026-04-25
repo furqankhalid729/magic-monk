@@ -49,7 +49,7 @@ class ProcessOrderReminder implements ShouldQueue
                 $reminder->phone_number,
                 $bodyData,
                 [],
-                'feedback_with_nps',
+                'backup_paymentfm',
                 null
             );
             Log::info('Sent WhatsApp Pay reminder', ['response' => $response]);

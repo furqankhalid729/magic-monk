@@ -109,11 +109,11 @@ class AndroidAgentController extends Controller
             $response = sendInteraktMessage($order->customer_phone, [
                 (string) $order->order_id,
                 $customerSubscription->order_count
-            ], [asset('storage/feedback.jpeg')], 'subs_feedback_with_nps', "");
+            ], [asset('storage/feedback.jpeg')], 'subs_backup_paymentfm', "");
         } else {
             $response = sendInteraktMessage($order->customer_phone, [
                 (string) $order->order_id
-            ], [asset('storage/feedback.jpeg')], 'feedback_with_nps', "");
+            ], [asset('storage/feedback.jpeg')], 'backup_paymentfm', "");
 
             sendInteraktMessage(
                 $order->customer_phone,
