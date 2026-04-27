@@ -660,7 +660,7 @@ class Webhook extends Controller
                 ];
                 $buttonValues = [
                     "0" => [
-                        $paymentLink
+                        $paymentLink["payment_link"] ?? ""
                     ]
                 ];
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
@@ -859,7 +859,7 @@ class Webhook extends Controller
         ];
         $buttonValues = [
             "0" => [
-                $paymentLink
+                $paymentLink["payment_link"] ?? ""
             ]
         ];
 
@@ -1045,7 +1045,7 @@ class Webhook extends Controller
         ];
         $buttonValues = [
             "0" => [
-                $paymentLink
+                $paymentLink["payment_link"] ?? ""
             ]
         ];
 
@@ -1211,7 +1211,7 @@ class Webhook extends Controller
 
         $buttonValues = [
             "0" => [
-                $paymentLink
+                $paymentLink["payment_link"] ?? ""
             ]
         ];
 
