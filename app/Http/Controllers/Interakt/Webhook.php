@@ -658,7 +658,7 @@ class Webhook extends Controller
                     // (string) ($shippingFee ?? "0"),
                     // $paymentLink['payment_link'] ?? "",
                 ];
-                $buttonValues = [
+                $buttonValues = (object) [
                     "0" => [
                         $paymentLink["payment_link"] ?? ""
                     ]
@@ -857,7 +857,7 @@ class Webhook extends Controller
             (string) $totalAmount,
             //$paymentLink['payment_link']
         ];
-        $buttonValues = [
+        $buttonValues = (object) [
             "0" => [
                 $paymentLink["payment_link"] ?? ""
             ]
@@ -1043,7 +1043,7 @@ class Webhook extends Controller
             $totalAmount,
             //$paymentLink['payment_link']
         ];
-        $buttonValues = [
+        $buttonValues = (object) [
             "0" => [
                 $paymentLink["payment_link"] ?? ""
             ]
@@ -1209,7 +1209,7 @@ class Webhook extends Controller
             // $paymentLink['payment_link']
         ];
 
-        $buttonValues = [
+        $buttonValues = (object) [
             "0" => [
                 $paymentLink["payment_link"] ?? ""
             ]
