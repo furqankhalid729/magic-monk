@@ -45,12 +45,16 @@ class ProcessOrderReminder implements ShouldQueue
                 // number_format($discount, 2),
                 number_format($payAbleAmount, 2),
             ];
+            $buttonValues = [
+                "0" => $data['payment_link'] ?? ""
+            ];
             $response = sendInteraktMessage(
                 $reminder->phone_number,
                 $bodyData,
                 [],
                 'backup_paymentfm',
-                null
+                null,
+                $buttonValues
             );
             Log::info('Sent WhatsApp Pay reminder', ['response' => $response]);
             $reminder->is_sent = true;

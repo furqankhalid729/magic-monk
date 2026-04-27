@@ -658,6 +658,9 @@ class Webhook extends Controller
                     // (string) ($shippingFee ?? "0"),
                     // $paymentLink['payment_link'] ?? "",
                 ];
+                $buttonValues = [
+                    "0" => $paymentLink['payment_link'] ?? ""
+                ];
 
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
                 if ($payment_status === 'PENDING') {
@@ -666,7 +669,8 @@ class Webhook extends Controller
                         $new_payload,
                         [$commonData['headerImage']],
                         'backup_paymentfm',
-                        null
+                        null,
+                        $buttonValues
                     );
                     Log::info('WhatsApp Pay response', ['response' => $response]);
                     $cacheKey = $response['id'] ?? null;
@@ -852,6 +856,9 @@ class Webhook extends Controller
             (string) $totalAmount,
             //$paymentLink['payment_link']
         ];
+        $buttonValues = [
+            "0" => $paymentLink['payment_link'] ?? ""
+        ];
 
         if ($payment_status === 'PENDING') {
             $response = sendInteraktMessage(
@@ -859,7 +866,8 @@ class Webhook extends Controller
                 $new_payload,
                 [$commonData['headerImage']],
                 'backup_paymentfm',
-                null
+                null,
+                $buttonValues
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
@@ -1032,6 +1040,9 @@ class Webhook extends Controller
             $totalAmount,
             //$paymentLink['payment_link']
         ];
+        $buttonValues = [
+            "0" => $paymentLink['payment_link'] ?? ""
+        ];
 
         if ($payment_status === 'PENDING') {
             $response = sendInteraktMessage(
@@ -1039,7 +1050,8 @@ class Webhook extends Controller
                 $new_payload,
                 [$commonData['headerImage']],
                 'backup_paymentfm',
-                null
+                null,
+                $buttonValues
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
@@ -1192,13 +1204,18 @@ class Webhook extends Controller
             // $paymentLink['payment_link']
         ];
 
+        $buttonValues = [
+            "0" => $paymentLink['payment_link'] ?? ""
+        ];
+
         if ($payment_status === 'PENDING') {
             $response = sendInteraktMessage(
                 $commonData['customerPhone'],
                 $new_payload,
                 [$commonData['headerImage']],
                 'backup_paymentfm',
-                null
+                null,
+                $buttonValues
             );
             //$response = sendWhatsAppPay($commonData['customerPhone'], $new_payload, [$commonData['headerImage']], "paymentfm_with_pod2", null, $simplifiedItems, $totalAmount, $commonData['orderNumber'], $pay_address, $discountAmount, false);
             Log::info('WhatsApp Pay response', ['response' => $response]);
