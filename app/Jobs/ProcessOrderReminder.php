@@ -40,9 +40,9 @@ class ProcessOrderReminder implements ShouldQueue
             $payAbleAmount = $data['additional_info']['to_collect'] ?? 0;
             $bodyData = [
                 $itemsString,
-                $totalItems,
-                number_format($totalAmount, 2),
-                number_format($discount, 2),
+                // $totalItems,
+                // number_format($totalAmount, 2),
+                // number_format($discount, 2),
                 number_format($payAbleAmount, 2),
             ];
             $response = sendInteraktMessage(

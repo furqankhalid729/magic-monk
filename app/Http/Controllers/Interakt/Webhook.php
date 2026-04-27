@@ -651,12 +651,12 @@ class Webhook extends Controller
 
                 $new_payload = [
                     $itemList,
-                    count($data['order_items'] ?? []),
-                    (string) ($totalAmount - $shippingFee),
-                    (string) $discountAmount,
+                    // count($data['order_items'] ?? []),
+                    // (string) ($totalAmount - $shippingFee),
+                    // (string) $discountAmount,
                     (string) $totalAmount,
-                    (string) ($shippingFee ?? "0"),
-                    $paymentLink['payment_link'] ?? "",
+                    // (string) ($shippingFee ?? "0"),
+                    // $paymentLink['payment_link'] ?? "",
                 ];
 
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
@@ -846,11 +846,11 @@ class Webhook extends Controller
         );
         $new_payload = [
             $itemList,
-            count($data['order_items'] ?? []),
+            // count($data['order_items'] ?? []),
+            // (string) $totalAmount,
+            // (string) $discountAmount,
             (string) $totalAmount,
-            (string) $discountAmount,
-            (string) $totalAmount,
-            $paymentLink['payment_link']
+            //$paymentLink['payment_link']
         ];
 
         if ($payment_status === 'PENDING') {
@@ -1026,11 +1026,11 @@ class Webhook extends Controller
 
         $new_payload = [
             $itemList,
-            count($data['order_items'] ?? []),
+            //count($data['order_items'] ?? []),
+            // $totalAmount,
+            // (string) $discountAmount,
             $totalAmount,
-            (string) $discountAmount,
-            $totalAmount,
-            $paymentLink['payment_link']
+            //$paymentLink['payment_link']
         ];
 
         if ($payment_status === 'PENDING') {
@@ -1184,12 +1184,12 @@ class Webhook extends Controller
 
         $new_payload = [
             $itemList,
-            count($data['order_items'] ?? []),
-            (string) ($totalAmount - $shippingFee),
-            (string) $discountAmount,
+            // count($data['order_items'] ?? []),
+            // (string) ($totalAmount - $shippingFee),
+            // (string) $discountAmount,
             (string) $totalAmount,
-            (string) $shippingFee,
-            $paymentLink['payment_link']
+            // (string) $shippingFee,
+            // $paymentLink['payment_link']
         ];
 
         if ($payment_status === 'PENDING') {
