@@ -46,7 +46,9 @@ class ProcessOrderReminder implements ShouldQueue
                 number_format($payAbleAmount, 2),
             ];
             $buttonValues = [
-                "0" => $data['payment_link'] ?? ""
+                "0" => [
+                    $data['payment_link'] ?? ""
+                ]
             ];
             $response = sendInteraktMessage(
                 $reminder->phone_number,

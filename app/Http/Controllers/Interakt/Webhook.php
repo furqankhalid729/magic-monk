@@ -659,9 +659,10 @@ class Webhook extends Controller
                     // $paymentLink['payment_link'] ?? "",
                 ];
                 $buttonValues = [
-                    "0" => $paymentLink['payment_link'] ?? ""
+                    "0" => [
+                        $data['payment_link'] ?? ""
+                    ]
                 ];
-
                 Log::info('Prepared payload for WhatsApp Pay', ['payload' => $new_payload]);
                 if ($payment_status === 'PENDING') {
                     $response = sendInteraktMessage(
@@ -857,7 +858,9 @@ class Webhook extends Controller
             //$paymentLink['payment_link']
         ];
         $buttonValues = [
-            "0" => $paymentLink['payment_link'] ?? ""
+            "0" => [
+                $data['payment_link'] ?? ""
+            ]
         ];
 
         if ($payment_status === 'PENDING') {
@@ -1041,7 +1044,9 @@ class Webhook extends Controller
             //$paymentLink['payment_link']
         ];
         $buttonValues = [
-            "0" => $paymentLink['payment_link'] ?? ""
+            "0" => [
+                $data['payment_link'] ?? ""
+            ]
         ];
 
         if ($payment_status === 'PENDING') {
@@ -1205,7 +1210,9 @@ class Webhook extends Controller
         ];
 
         $buttonValues = [
-            "0" => $paymentLink['payment_link'] ?? ""
+            "0" => [
+                $data['payment_link'] ?? ""
+            ]
         ];
 
         if ($payment_status === 'PENDING') {
