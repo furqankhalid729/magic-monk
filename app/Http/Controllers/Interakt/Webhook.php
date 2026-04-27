@@ -218,7 +218,7 @@ class Webhook extends Controller
 
                     case 'Text':
                         $text = $request->input('data.message.message');
-                        if ($text === "I'll Pay UPI on Delivery") {
+                        if ($text === "I'll Pay UPI on Delivery" || $text === "I'll Scan QR Code InStore") {
                             $phone = "+91" . $request->input('data.customer.phone_number');
                             $key = "we-fast-{$phone}";
 
