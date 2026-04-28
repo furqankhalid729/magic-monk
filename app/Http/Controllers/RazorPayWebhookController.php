@@ -59,12 +59,13 @@ class RazorPayWebhookController extends Controller
             sendInteraktMessage(
                 $cacheData['customer_phone'],
                 [
-                    $agent['name'] ?? null,
-                    $cacheData['agent_number'] ?? null,
-                    $cacheData['order_id']
+                    $cacheData['order_id'],
+                    "Infiniti",
+                    $cacheData['total_amount'],
+                    "been successfully received"
                 ],
                 ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
-                'orderconfirmationvideo',
+                'wforderconfirmationvideo',
                 null
             );
         }
@@ -113,7 +114,7 @@ class RazorPayWebhookController extends Controller
             preg_match('/\d+(\.\d+)?/', $product, $matches);
 
             $price = $matches[0] ?? null;
-            $url = generatePaymentLink("test","","test@gmail.com", $price * 100, "387643764");
+            $url = generatePaymentLink("test", "", "test@gmail.com", $price * 100, "387643764");
             return response()->json([
                 'message' => 'Product is not empty',
                 'product' => $product,
