@@ -253,7 +253,7 @@ class Webhook extends Controller
                                             $cacheData['order_id'],
                                             "Infiniti",
                                             $cacheData['total_amount'],
-                                            "to be made in-store via UPI"
+                                            "to be made in-store via UPI "
                                         ],
                                         ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
                                         'wforderconfirmationvideo',
