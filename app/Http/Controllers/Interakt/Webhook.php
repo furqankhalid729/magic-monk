@@ -548,6 +548,29 @@ class Webhook extends Controller
 
             case "cart_order_update":
                 $data = $request->input('data');
+
+                // Get highest value item
+                $highestItem = collect($data['order_items'] ?? [])
+                    ->sortByDesc('amount')
+                    ->first();
+
+                if ($highestItem) {
+                    // Keep only highest item
+                    $data['order_items'] = [$highestItem];
+
+                    // Update totals based on that item
+                    $data['total_amount'] = $highestItem['amount'] ?? 0;
+                    $data['cart_value']   = $highestItem['amount'] ?? 0;
+
+                    // Optional: also reset other pricing fields if needed
+                    $data['discount'] = 0;
+                    $data['shipping_charge'] = 0;
+                } else {
+                    $data['order_items'] = [];
+                    $data['total_amount'] = 0;
+                    $data['cart_value'] = 0;
+                }
+                
                 $payment_status = $data['payment_status'] ?? 'PENDING';
                 Log::info('Cart order update received', $data);
 
