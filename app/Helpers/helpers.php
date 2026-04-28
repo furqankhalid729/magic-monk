@@ -16,7 +16,7 @@ use Carbon\Carbon;
 use Razorpay\Api\Api;
 
 if (!function_exists('sendInteraktMessage')) {
-    function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null,$buttonValues = [])
+    function sendInteraktMessage($phoneNumber, $bodyValues = [], $headerValues = [], $templateName = 'your_template', $campaignId = null, $buttonValues = [])
     {
         $apiKey = env('INTERAKT_API_KEY');
         $campaignId = $campaignId ?? null;
@@ -28,17 +28,23 @@ if (!function_exists('sendInteraktMessage')) {
             'Content-Type' => 'application/json',
         ];
 
+        $template = [
+            "name" => $templateName,
+            "languageCode" => "en",
+            "headerValues" => $headerValues,
+            "bodyValues" => $bodyValues,
+        ];
+
+        // ✅ Only include buttonValues if not empty
+        if (!empty($buttonValues)) {
+            $template["buttonValues"] = $buttonValues;
+        }
+
         $body = [
             "fullPhoneNumber" => $phoneNumber,
             "campaignId" => $campaignId,
             "type" => "Template",
-            "template" => [
-                "name" => $templateName,
-                "languageCode" => "en",
-                "headerValues" => $headerValues,
-                "bodyValues" => $bodyValues,
-                "buttonValues" => $buttonValues
-            ]
+            "template" => $template
         ];
 
 

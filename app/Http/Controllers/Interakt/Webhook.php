@@ -172,12 +172,13 @@ class Webhook extends Controller
                             sendInteraktMessage(
                                 $commonData['customerPhone'],
                                 [
-                                    $agentDetails['name'] ?? null,
+                                    $commonData['orderNumber'],
+                                    "Infiniti",
                                     $agentMobile,
                                     $commonData['orderNumber']
                                 ],
                                 ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
-                                'orderconfirmationvideo',
+                                'wforderconfirmationvideo',
                                 null
                             );
                         } else if ($title == "Order Something Now") {
@@ -249,12 +250,13 @@ class Webhook extends Controller
                                     sendInteraktMessage(
                                         $cacheData['customer_phone'],
                                         [
-                                            $agent['name'] ?? null,
-                                            $cacheData['agent_number'] ?? null,
+                                            $cacheData['order_id'],
+                                            "Infiniti",
+                                            $cacheData['total_amount'],
                                             $cacheData['order_id']
                                         ],
                                         ['https://fm.monkmagic.in/storage/videos/about-fruit.mp4'],
-                                        'orderconfirmationvideo',
+                                        'wforderconfirmationvideo',
                                         null
                                     );
                                     // Create Order
