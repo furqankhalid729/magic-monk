@@ -598,7 +598,12 @@ class Webhook extends Controller
                 $agentMobile = isset($agentDetails['whatsapp_number']) ? '+91' . $agentDetails['whatsapp_number'] : null;
 
                 $itemList = collect($data['order_items'] ?? [])->map(fn($item) => "{$item['item_name']} x{$item['quantity']}")->implode(' | ');
-
+                $item = collect($data['order_items'] ?? [])
+                    ->sortByDesc('amount') // or 'price'
+                    ->first();
+                $itemList = $item
+                    ? "{$item['item_name']} x{$item['quantity']}"
+                    : null;
                 $liveOffer = $location?->liveAdditionalOffers()->first();
                 Log::info('Live offer for location', ['location' => $location->building_name ?? null, 'liveOffer' => $liveOffer]);
                 $shippingFee = null;
