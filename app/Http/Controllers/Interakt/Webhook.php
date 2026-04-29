@@ -639,7 +639,7 @@ class Webhook extends Controller
                 } else {
                     $discountCheck = fastMoverGetDiscountAmount($commonData['customerPhone']);
                     $discountAmount = $firstTimeDiscount ? fastMoverGetFirstTimeDiscount($data['order_items'], $location) : $discountCheck['discount_amount'] ?? 0;
-                    $shippingFee = $discountCheck['shipping_fee'] ?? null;
+                    $shippingFee = 0;
                 }
                 $discountAmount = floor($discountAmount);
                 $totalAmount = max(0, $data['total_amount'] - ($discountAmount + ($discountCheck['adjustment'] ?? 0)));

@@ -449,8 +449,8 @@ if (!function_exists(('generatePaymentLink'))) {
                 'email' => $email,
             ],
             'notify' => [
-                'sms' => true,
-                'email' => true,
+                'sms' => false,
+                'email' => false,
             ],
             'callback_url' => url("https://fm.monkmagic.in/"),
             'callback_method' => 'get'
