@@ -113,15 +113,8 @@ class AndroidAgentController extends Controller
         } else {
             $response = sendInteraktMessage($order->customer_phone, [
                 (string) $order->order_id
-            ], [asset('storage/feedback.jpeg')], 'backup_paymentfm', "");
+            ], [asset('storage/feedback.jpeg')], 'feedback_with_nps', "");
 
-            sendInteraktMessage(
-                $order->customer_phone,
-                [],
-                ['https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_media/xKT7AqEDWre5/WhatsApp%20Image%202025-11-30%20at%2022.54.36.jpeg?se=2030-11-24T17%3A27%3A56Z&sp=rt&sv=2019-12-12&sr=b&sig=DpRXcKLFggvb9RBYBZGYene8Wqp9/zWL45TxohoqwvU%3D'],
-                'subscriptionnudge',
-                ""
-            );
         }
         $order->review_message_id = $response['id'] ?? null;
         $order->save();
