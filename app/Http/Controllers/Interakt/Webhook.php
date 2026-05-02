@@ -550,19 +550,33 @@ class Webhook extends Controller
                 $data = $request->input('data');
 
                 $items = collect($data['order_items'] ?? []);
-                if ($items->count() > 1) {
+                // Check:
+                // 1. More than 1 item
+                // OR
+                // 2. Any item has quantity > 1
+                if (
+                    $items->count() > 1 ||
+                    $items->contains(function ($item) {
+                        return ($item['quantity'] ?? 0) > 1;
+                    })
+                ) {
                     $response = sendInteraktMessage(
                         "+91" . ($data['customer_phone_number']['phone_number'] ?? 'N/A'),
                         [
-                            $data['customer_traits']['RealName'] ?? $data['customer_traits']['name'] ?? 'Customer',
+                            $data['customer_traits']['RealName']
+                                ?? $data['customer_traits']['name']
+                                ?? 'Customer',
                             $data['id'],
-
                         ],
                         [],
                         'order_quantity_limit_notification',
                         null
                     );
-                    return response()->json(['message' => 'Order quantity limit notification sent', 'response' => $response]);
+
+                    return response()->json([
+                        'message' => 'Order quantity limit notification sent',
+                        'response' => $response
+                    ]);
                 }
 
                 $payment_status = $data['payment_status'] ?? 'PENDING';
