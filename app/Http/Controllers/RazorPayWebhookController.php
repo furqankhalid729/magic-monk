@@ -80,7 +80,7 @@ class RazorPayWebhookController extends Controller
             'order_time'     => $cacheData['order_time'] ?? now('Asia/Kolkata'),
             'delivery_time'  => $cacheData['delivery_time'] ?? now('Asia/Kolkata')->addMinutes(5),
             'agent_number'   => $cacheData['agent_number'] ?? null,
-            'total_amount'   => 0, //$cacheData['total_amount'] ?? null,
+            'total_amount'   => $cacheData['total_amount'] ?? null,
             'address'        => $cacheData['address'] ?? null,
             'expo_token'     => data_get($cacheData, 'expo.token'),
             'payment_status' => 'paid',
