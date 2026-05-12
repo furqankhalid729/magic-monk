@@ -550,10 +550,6 @@ class Webhook extends Controller
                 $data = $request->input('data');
 
                 $items = collect($data['order_items'] ?? []);
-                // Check:
-                // 1. More than 1 item
-                // OR
-                // 2. Any item has quantity > 1
                 if (
                     $items->count() > 1 ||
                     $items->contains(function ($item) {
@@ -689,12 +685,7 @@ class Webhook extends Controller
 
                 $new_payload = [
                     $itemList,
-                    // count($data['order_items'] ?? []),
-                    // (string) ($totalAmount - $shippingFee),
-                    // (string) $discountAmount,
                     (string) $totalAmount,
-                    // (string) ($shippingFee ?? "0"),
-                    // $paymentLink['payment_link'] ?? "",
                 ];
                 $buttonValues = (object) [
                     "1" => [
@@ -746,15 +737,39 @@ class Webhook extends Controller
                         ];
 
                         Cache::put($cacheKey, $orderData, now()->addHours(6));
-                        Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
-                        WhatsAppPayReminder::create([
-                            'phone_number' => $commonData['customerPhone'],
-                            'message_id'   => $response['id'],
-                            'is_sent'      => false,
-                            'order_data'   => $orderData
+                        
+                        $order = Order::create([
+                            'customer_name'  => $orderData['customer_name'] ?? null,
+                            'order_id'       => $orderData['order_id'] ?? null,
+                            'customer_phone' => $orderData['customer_phone'] ?? null,
+                            'building'       => $orderData['building'] ?? null,
+                            'order_time'     => $orderData['order_time'] ?? now('Asia/Kolkata'),
+                            'delivery_time'  => $orderData['delivery_time'] ?? now('Asia/Kolkata')->addMinutes(10),
+                            'agent_number'   => $orderData['agent_number'] ?? null,
+                            'total_amount'   => $orderData['total_amount'] ?? null,
+                            'address'        => $orderData['address'] ?? null,
+                            'expo_token'     => data_get($orderData, 'expo.token'),
+                            'payment_status' => 'pending',
+                            'additional_info' => [
+                                'paid_online' =>  0,
+                                'to_collect'  =>  0,
+                                'payment_status' => 'pending',
+                                'first_time_discount' => $orderData['additional_info']['first_time_discount'] ?? null
+                            ]
                         ]);
 
-                        $message = 'Order data cached successfully.';
+                        foreach ($cacheData['order_items'] ?? [] as $item) {
+                            OrderItem::create([
+                                'order_id'  => $order->id,
+                                'item_name' => $item['item_name'],
+                                'price'     => $item['price'],
+                                'quantity'  => $item['quantity'],
+                                'amount'    => $item['amount'],
+                            ]);
+                        }
+                        $orderData['system_order_id'] = $order->id;
+                        Cache::put('razorPay-' . $commonData['customerPhone'], $orderData, now()->addHours(6));
+                        $message = 'Order created successfully and cached with key: ' . $cacheKey;
                     } else {
                         Log::error('Cache key not found in WhatsApp Pay response', ['response' => $response]);
                         $message = 'Failed to cache order data. Cache key not found.';
