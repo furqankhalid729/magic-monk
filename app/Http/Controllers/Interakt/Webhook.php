@@ -758,7 +758,7 @@ class Webhook extends Controller
                             ]
                         ]);
 
-                        foreach ($cacheData['order_items'] ?? [] as $item) {
+                        foreach ($orderData['order_items'] ?? [] as $item) {
                             OrderItem::create([
                                 'order_id'  => $order->id,
                                 'item_name' => $item['item_name'],
