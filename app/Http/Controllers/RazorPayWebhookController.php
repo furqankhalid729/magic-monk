@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\OdooService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Order;
-use App\Models\OrderItem;
 
 class RazorPayWebhookController extends Controller
 {
@@ -80,6 +80,39 @@ class RazorPayWebhookController extends Controller
                     'payment_status' => 'paid'
                 ])
             ]);
+
+            try {
+                $order->loadMissing('items');
+                $odooSync = app(OdooService::class)->syncOrderInvoice($order);
+
+                $order->update([
+                    'additional_info' => array_merge($order->additional_info ?? [], [
+                        'odoo_sync_status' => 'synced',
+                        'odoo_partner_id' => $odooSync['partner_id'] ?? null,
+                        'odoo_invoice_id' => $odooSync['invoice_id'] ?? null,
+                        'odoo_invoice_url' => $odooSync['invoice_url'] ?? null,
+                        'odoo_invoice_pdf_url' => $odooSync['invoice_pdf_url'] ?? null,
+                    ])
+                ]);
+
+                Log::info('Order synced with Odoo', [
+                    'order_id' => $order->id,
+                    'invoice_id' => $odooSync['invoice_id'] ?? null,
+                    'invoice_url' => $odooSync['invoice_url'] ?? null,
+                ]);
+            } catch (\Throwable $throwable) {
+                Log::error('Failed to sync order with Odoo', [
+                    'order_id' => $order->id,
+                    'error' => $throwable->getMessage(),
+                ]);
+
+                $order->update([
+                    'additional_info' => array_merge($order->additional_info ?? [], [
+                        'odoo_sync_status' => 'failed',
+                        'odoo_sync_error' => $throwable->getMessage(),
+                    ])
+                ]);
+            }
         } else {
             Log::error("Order not found for system_order_id: {$cacheData['system_order_id']}");
         }

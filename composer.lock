@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6df6a95c94bf9a2eb4adaf03a070af2b",
+    "content-hash": "1337d03de9d64a96dcb08da4fecfb93e",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -984,6 +984,51 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "fguillot/json-rpc",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/matasarei/json-rpc.git",
+                "reference": "90ee19876519543a17436e0e66f4f4515c036606"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/matasarei/json-rpc/zipball/90ee19876519543a17436e0e66f4f4515c036606",
+                "reference": "90ee19876519543a17436e0e66f4f4515c036606",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6",
+                "squizlabs/php_codesniffer": "^3.9"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "JsonRPC": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Frédéric Guillot"
+                }
+            ],
+            "description": "Simple JSON-RPC client/server library that just works",
+            "homepage": "https://github.com/matasarei/json-rpc",
+            "support": {
+                "issues": "https://github.com/matasarei/json-rpc/issues",
+                "source": "https://github.com/matasarei/json-rpc/tree/v1.4.0"
+            },
+            "time": "2026-01-30T11:44:58+00:00"
         },
         {
             "name": "filament/actions",
