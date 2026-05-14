@@ -40,7 +40,35 @@ class OdooService
             ]
         );
 
-        return $response->json('result');
+        if ($response->failed()) {
+            Log::error('Odoo HTTP request failed', [
+                'service' => $service,
+                'method' => $method,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new \RuntimeException('Odoo HTTP request failed with status ' . $response->status() . '.');
+        }
+
+        $payload = $response->json();
+
+        if (!empty($payload['error'])) {
+            Log::error('Odoo RPC error', [
+                'service' => $service,
+                'method' => $method,
+                'args' => $args,
+                'error' => $payload['error'],
+            ]);
+
+            $message = $payload['error']['data']['message']
+                ?? $payload['error']['message']
+                ?? 'Unknown Odoo RPC error.';
+
+            throw new \RuntimeException($message);
+        }
+
+        return $payload['result'] ?? null;
     }
 
     protected function authenticate()
@@ -87,11 +115,7 @@ class OdooService
                     $this->password,
                     'res.partner',
                     'search',
-                    [[
-                        '|',
-                        ['mobile', '=', $phone],
-                        ['phone', '=', $phone],
-                    ], 0, 1]
+                    [[['phone', '=', $phone]], 0, 1]
                 ]
             );
 
@@ -116,7 +140,6 @@ class OdooService
                 [[
                     'name' => $name ?: $phone ?: 'Customer',
                     'phone' => $phone,
-                    'mobile' => $phone,
                     'email' => $email,
                 ]]
             ]
@@ -282,15 +305,25 @@ class OdooService
             'partner_id' => $partnerId,
         ]);
 
-        $receiptId = $this->createReceipt($partnerId, $order, $posConfig);
+        $posOrder = $this->createPosOrder($partnerId, $order, $posConfig);
+        Log::info('Odoo POS order sync completed', [
+            'order_id' => $order->id,
+            'pos_order' => $posOrder,
+        ]);
+
+        $receiptId = $this->createReceipt($partnerId, $order, $posConfig, $posOrder);
         Log::info('Odoo receipt sync completed', [
             'order_id' => $order->id,
             'receipt_id' => $receiptId,
             'selected_pos_config' => $this->summarizePosConfig($posConfig),
+            'pos_order' => $posOrder,
         ]);
 
         return [
             'partner_id' => $partnerId,
+            'pos_order_id' => $posOrder['id'] ?? null,
+            'pos_order_name' => $posOrder['name'] ?? null,
+            'pos_order_reference' => $posOrder['pos_reference'] ?? null,
             'receipt_id' => $receiptId,
             'receipt_url' => $this->getReceiptUrl($receiptId),
             'receipt_pdf_url' => $this->getReceiptPdfUrl($receiptId),
@@ -301,14 +334,14 @@ class OdooService
         ];
     }
 
-    public function createReceipt(int $partnerId, Order $order, ?array $posConfig = null): int
+    public function createReceipt(int $partnerId, Order $order, ?array $posConfig = null, ?array $posOrder = null): int
     {
         $receiptLines = $this->buildInvoiceLines($order);
         $payload = [
             'move_type' => 'out_receipt',
             'partner_id' => $partnerId,
-            'invoice_origin' => $order->order_id ?: (string) $order->id,
-            'ref' => $order->order_id ?: (string) $order->id,
+            'invoice_origin' => $posOrder['name'] ?? ($order->order_id ?: (string) $order->id),
+            'ref' => $posOrder['pos_reference'] ?? ($order->order_id ?: (string) $order->id),
             'invoice_date' => now()->toDateString(),
             'invoice_line_ids' => $receiptLines,
         ];
@@ -387,6 +420,377 @@ class OdooService
         ]);
 
         return $receiptId;
+    }
+
+    protected function createPosOrder(int $partnerId, Order $order, ?array $posConfig): array
+    {
+        if (empty($posConfig['id']) || empty($posConfig['current_session_id'][0])) {
+            throw new \RuntimeException('No open POS session found for the selected building.');
+        }
+
+        $paymentMethodId = $this->resolvePosPaymentMethodId($posConfig);
+        $totalAmount = (float) ($order->total_amount ?? 0);
+        $linePayloads = $this->buildPosOrderLinePayloads($order);
+
+        Log::info('Creating Odoo POS order', [
+            'order_id' => $order->id,
+            'session_id' => $posConfig['current_session_id'][0],
+            'config_id' => $posConfig['id'],
+            'payment_method_id' => $paymentMethodId,
+            'line_payloads' => $linePayloads,
+            'total_amount' => $totalAmount,
+        ]);
+
+        $orderPayload = [
+            'session_id' => $posConfig['current_session_id'][0],
+            'config_id' => $posConfig['id'],
+            'partner_id' => $partnerId ?: false,
+            'amount_total' => $totalAmount,
+            'amount_tax' => 0,
+            'amount_paid' => 0,
+            'amount_return' => 0,
+            'lines' => $linePayloads,
+            'tracking_number' => (string) ($order->order_id ?: $order->id),
+            'general_customer_note' => 'Magic Monk order #' . ($order->order_id ?: $order->id),
+        ];
+
+        $posOrderId = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.order',
+                'create',
+                [[$orderPayload]]
+            ]
+        );
+
+        if (empty($posOrderId)) {
+            throw new \RuntimeException('Unable to create POS order in Odoo.');
+        }
+
+        $posOrderId = $this->normalizeOdooId($posOrderId);
+
+        Log::info('Odoo POS order created', [
+            'order_id' => $order->id,
+            'pos_order_id' => $posOrderId,
+        ]);
+
+        $posPaymentId = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.payment',
+                'create',
+                [[
+                    'pos_order_id' => $posOrderId,
+                    'payment_method_id' => $paymentMethodId,
+                    'amount' => $totalAmount,
+                    'payment_ref_no' => (string) ($order->order_id ?: $order->id),
+                ]]
+            ]
+        );
+
+        $posPaymentId = $this->normalizeOdooId($posPaymentId);
+
+        Log::info('Odoo POS payment created', [
+            'order_id' => $order->id,
+            'pos_order_id' => $posOrderId,
+            'pos_payment_id' => $posPaymentId,
+            'payment_method_id' => $paymentMethodId,
+            'amount' => $totalAmount,
+        ]);
+
+        $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.order',
+                'write',
+                [[$posOrderId], [
+                    'amount_paid' => $totalAmount,
+                    'amount_return' => 0,
+                ]]
+            ]
+        );
+
+        Log::info('Odoo POS order payment totals updated', [
+            'order_id' => $order->id,
+            'pos_order_id' => $posOrderId,
+            'amount_paid' => $totalAmount,
+        ]);
+
+        $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.order',
+                'action_pos_order_paid',
+                [[$posOrderId]]
+            ]
+        );
+
+        Log::info('Odoo POS order marked paid', [
+            'order_id' => $order->id,
+            'pos_order_id' => $posOrderId,
+        ]);
+
+        $posOrders = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.order',
+                'read',
+                [[$posOrderId], ['id', 'name', 'pos_reference', 'tracking_number', 'state', 'session_id', 'config_id']]
+            ]
+        );
+
+        return [
+            'id' => $posOrderId,
+            'name' => $posOrders[0]['name'] ?? null,
+            'pos_reference' => $posOrders[0]['pos_reference'] ?? null,
+            'tracking_number' => $posOrders[0]['tracking_number'] ?? null,
+            'state' => $posOrders[0]['state'] ?? null,
+            'session_id' => $posOrders[0]['session_id'][0] ?? null,
+            'session_name' => $posOrders[0]['session_id'][1] ?? null,
+            'config_id' => $posOrders[0]['config_id'][0] ?? null,
+            'config_name' => $posOrders[0]['config_id'][1] ?? null,
+        ];
+    }
+
+    protected function buildPosOrderLinePayloads(Order $order): array
+    {
+        $items = $order->relationLoaded('items') ? $order->items : $order->items()->get();
+        $linePayloads = [];
+        $lineTotal = 0.0;
+        $lineNumber = 1;
+
+        foreach ($items as $item) {
+            $quantity = max(1, (float) ($item->quantity ?? 1));
+            $unitPrice = (float) ($item->price ?? 0);
+
+            if ($unitPrice <= 0 && !empty($item->amount)) {
+                $unitPrice = (float) $item->amount / $quantity;
+            }
+
+            $product = $this->resolveOrCreatePosProduct($item->item_name, $unitPrice);
+            $subtotal = round($unitPrice * $quantity, 2);
+            $linePayloads[] = [0, 0, [
+                'name' => str_pad((string) $lineNumber, 6, '0', STR_PAD_LEFT),
+                'product_id' => $product['id'],
+                'full_product_name' => $product['name'],
+                'qty' => $quantity,
+                'price_unit' => $unitPrice,
+                'price_subtotal' => $subtotal,
+                'price_subtotal_incl' => $subtotal,
+                'discount' => 0,
+            ]];
+
+            $lineTotal += $unitPrice * $quantity;
+            $lineNumber++;
+        }
+
+        $delta = round((float) ($order->total_amount ?? 0) - $lineTotal, 2);
+
+        if (abs($delta) > 0.009) {
+            $adjustmentProduct = $this->resolveOrCreatePosProduct('Magic Monk POS Adjustment', $delta);
+            $subtotal = round($delta, 2);
+            $linePayloads[] = [0, 0, [
+                'name' => str_pad((string) $lineNumber, 6, '0', STR_PAD_LEFT),
+                'product_id' => $adjustmentProduct['id'],
+                'full_product_name' => 'Magic Monk POS Adjustment',
+                'qty' => 1,
+                'price_unit' => $delta,
+                'price_subtotal' => $subtotal,
+                'price_subtotal_incl' => $subtotal,
+                'discount' => 0,
+            ]];
+
+            Log::info('Added POS adjustment line for order total delta', [
+                'order_id' => $order->id,
+                'line_total' => $lineTotal,
+                'order_total' => (float) ($order->total_amount ?? 0),
+                'delta' => $delta,
+            ]);
+        }
+
+        return $linePayloads;
+    }
+
+    protected function resolvePosPaymentMethodId(?array $posConfig): int
+    {
+        $paymentMethodIds = $posConfig['payment_method_ids'] ?? [];
+
+        if (empty($paymentMethodIds)) {
+            throw new \RuntimeException('No payment methods configured for the selected POS register.');
+        }
+
+        $paymentMethods = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.payment.method',
+                'read',
+                [$paymentMethodIds, ['id', 'name', 'type', 'active']]
+            ]
+        );
+
+        Log::info('Odoo POS payment methods resolved', [
+            'pos_config_id' => $posConfig['id'] ?? null,
+            'payment_methods' => $paymentMethods,
+        ]);
+
+        foreach ($paymentMethods as $paymentMethod) {
+            if (($paymentMethod['type'] ?? null) !== 'online') {
+                return (int) $paymentMethod['id'];
+            }
+        }
+
+        return (int) $paymentMethods[0]['id'];
+    }
+
+    protected function resolveOrCreatePosProduct(?string $name, float $price): array
+    {
+        $name = trim((string) $name) ?: 'Magic Monk POS Item';
+        $product = $this->findPosProductByName($name);
+
+        if ($product !== null) {
+            Log::info('Matched Odoo POS product for order item', [
+                'item_name' => $name,
+                'product' => $product,
+            ]);
+
+            return $product;
+        }
+
+        $templateId = $this->normalizeOdooId($this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'product.template',
+                'create',
+                [[
+                    'name' => $name,
+                    'list_price' => $price,
+                    'available_in_pos' => true,
+                    'sale_ok' => true,
+                    'purchase_ok' => false,
+                    'type' => 'consu',
+                ]]
+            ]
+        ));
+
+        $productIds = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'product.product',
+                'search',
+                [[[ 'product_tmpl_id', '=', $templateId ]], 0, 1]
+            ]
+        );
+
+        $productId = $this->normalizeOdooId($productIds);
+        $products = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'product.product',
+                'read',
+                [[$productId], ['id', 'name']]
+            ]
+        );
+
+        $product = [
+            'id' => $productId,
+            'name' => $products[0]['name'] ?? $name,
+        ];
+
+        Log::info('Created Odoo POS product for order item', [
+            'item_name' => $name,
+            'template_id' => $templateId,
+            'product' => $product,
+            'price' => $price,
+        ]);
+
+        return $product;
+    }
+
+    protected function findPosProductByName(string $name): ?array
+    {
+        $searchTerms = array_values(array_unique(array_filter([
+            $name,
+            trim((string) preg_replace('/\s*\(.*/', '', $name)),
+        ])));
+
+        foreach ($searchTerms as $searchTerm) {
+            $productIds = $this->call(
+                'object',
+                'execute_kw',
+                [
+                    $this->db,
+                    $this->uid,
+                    $this->password,
+                    'product.product',
+                    'search',
+                    [[
+                        ['available_in_pos', '=', true],
+                        ['name', 'ilike', $searchTerm],
+                    ], 0, 1]
+                ]
+            );
+
+            if (empty($productIds)) {
+                continue;
+            }
+
+            $productId = $this->normalizeOdooId($productIds);
+            $products = $this->call(
+                'object',
+                'execute_kw',
+                [
+                    $this->db,
+                    $this->uid,
+                    $this->password,
+                    'product.product',
+                    'read',
+                    [[$productId], ['id', 'name']]
+                ]
+            );
+
+            return [
+                'id' => $productId,
+                'name' => $products[0]['name'] ?? $searchTerm,
+            ];
+        }
+
+        return null;
     }
 
     protected function getReceiptUrl(int $receiptId): string
@@ -483,7 +887,7 @@ class OdooService
                 'search_read',
                 [[['current_session_id', '!=', false]]],
                 [
-                    'fields' => ['name', 'current_session_id', 'journal_id', 'invoice_journal_id'],
+                    'fields' => ['name', 'current_session_id', 'payment_method_ids', 'journal_id', 'invoice_journal_id'],
                     'limit' => 1,
                 ]
             ]
@@ -540,7 +944,7 @@ class OdooService
                 'search_read',
                 [$domain],
                 [
-                    'fields' => ['name', 'current_session_id', 'journal_id', 'invoice_journal_id'],
+                    'fields' => ['name', 'current_session_id', 'payment_method_ids', 'journal_id', 'invoice_journal_id'],
                     'limit' => $limit,
                     'order' => 'id asc',
                 ]
@@ -559,6 +963,7 @@ class OdooService
             'name' => $posConfig['name'] ?? null,
             'session_id' => $posConfig['current_session_id'][0] ?? null,
             'session_name' => $posConfig['current_session_id'][1] ?? null,
+            'payment_method_ids' => $posConfig['payment_method_ids'] ?? [],
             'journal_id' => $posConfig['journal_id'][0] ?? null,
             'journal_name' => $posConfig['journal_id'][1] ?? null,
             'invoice_journal_id' => $posConfig['invoice_journal_id'][0] ?? null,

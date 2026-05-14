@@ -84,6 +84,9 @@ Artisan::command('odoo:sync-receipt {orderId : The system order ID to sync}', fu
         $this->info("Order {$order->id} synced as receipt with Odoo.");
         $this->line('POS Register: ' . ($odooSync['pos_config_name'] ?? 'n/a'));
         $this->line('POS Session: ' . ($odooSync['pos_session_name'] ?? 'n/a'));
+        $this->line('POS Order ID: ' . ($odooSync['pos_order_id'] ?? 'n/a'));
+        $this->line('POS Order Ref: ' . ($odooSync['pos_order_name'] ?? 'n/a'));
+        $this->line('POS Receipt No: ' . ($odooSync['pos_order_reference'] ?? 'n/a'));
         $this->line('Receipt ID: ' . ($odooSync['receipt_id'] ?? 'n/a'));
         $this->line('Receipt URL: ' . ($odooSync['receipt_url'] ?? 'n/a'));
         $this->line('Receipt PDF URL: ' . ($odooSync['receipt_pdf_url'] ?? 'n/a'));
