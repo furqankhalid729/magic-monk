@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Models\Order;
+use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class OdooService
 {
@@ -86,18 +89,49 @@ class OdooService
 
     public function syncOrderInvoice(Order $order): array
     {
+        Log::info('Odoo invoice sync started', [
+            'order_id' => $order->id,
+            'order_number' => $order->order_id,
+            'building' => $order->building,
+            'customer_name' => $order->customer_name,
+            'customer_phone' => $order->customer_phone,
+        ]);
+
+        $posConfig = $this->resolvePosConfigForBuilding($order->building);
+        Log::info('Odoo invoice POS mapping resolved', [
+            'order_id' => $order->id,
+            'building' => $order->building,
+            'selected_pos_config' => $this->summarizePosConfig($posConfig),
+        ]);
+
         $partnerId = $this->findOrCreatePartner(
             $order->customer_name,
             $order->customer_phone
         );
 
-        $invoiceId = $this->createInvoice($partnerId, $order);
+        $invoiceId = $this->createInvoice($partnerId, $order, $posConfig);
+        $storedInvoicePdf = $this->downloadAndStoreInvoicePdf($order, $invoiceId);
+
+        Log::info('Odoo invoice sync completed', [
+            'order_id' => $order->id,
+            'invoice_id' => $invoiceId,
+            'selected_pos_config' => $this->summarizePosConfig($posConfig),
+            'stored_invoice' => $storedInvoicePdf,
+        ]);
 
         return [
             'partner_id' => $partnerId,
             'invoice_id' => $invoiceId,
             'invoice_url' => $this->getInvoiceUrl($invoiceId),
             'invoice_pdf_url' => $this->getInvoicePdfUrl($invoiceId),
+            'stored_invoice_pdf_disk' => $storedInvoicePdf['disk'] ?? null,
+            'stored_invoice_pdf_path' => $storedInvoicePdf['path'] ?? null,
+            'stored_invoice_pdf_full_path' => $storedInvoicePdf['full_path'] ?? null,
+            'stored_invoice_pdf_url' => $storedInvoicePdf['url'] ?? null,
+            'pos_config_id' => $posConfig['id'] ?? null,
+            'pos_config_name' => $posConfig['name'] ?? null,
+            'pos_session_id' => $posConfig['current_session_id'][0] ?? null,
+            'pos_session_name' => $posConfig['current_session_id'][1] ?? null,
         ];
     }
 
@@ -155,9 +189,41 @@ class OdooService
         return $this->normalizeOdooId($createdPartnerId);
     }
 
-    public function createInvoice(int $partnerId, Order $order): int
+    public function createInvoice(int $partnerId, Order $order, ?array $posConfig = null): int
     {
         $invoiceLines = $this->buildInvoiceLines($order);
+        $payload = [
+            'move_type' => 'out_invoice',
+            'partner_id' => $partnerId,
+            'invoice_origin' => $order->order_id ?: (string) $order->id,
+            'ref' => $order->order_id ?: (string) $order->id,
+            'invoice_date' => now()->toDateString(),
+            'invoice_line_ids' => $invoiceLines,
+        ];
+
+        if (!empty($posConfig['invoice_journal_id'][0])) {
+            $payload['journal_id'] = $posConfig['invoice_journal_id'][0];
+        }
+
+        if (!empty($posConfig['name'])) {
+            $payload['narration'] = 'POS Register: ' . $posConfig['name'];
+        }
+
+        Log::info('Creating Odoo invoice', [
+            'order_id' => $order->id,
+            'partner_id' => $partnerId,
+            'pos_config' => $this->summarizePosConfig($posConfig),
+            'payload' => [
+                'move_type' => $payload['move_type'],
+                'partner_id' => $payload['partner_id'],
+                'invoice_origin' => $payload['invoice_origin'],
+                'ref' => $payload['ref'],
+                'invoice_date' => $payload['invoice_date'],
+                'journal_id' => $payload['journal_id'] ?? null,
+                'narration' => $payload['narration'] ?? null,
+                'invoice_line_count' => count($invoiceLines),
+            ],
+        ]);
 
         $invoiceId = $this->call(
             'object',
@@ -168,14 +234,7 @@ class OdooService
                 $this->password,
                 'account.move',
                 'create',
-                [[
-                    'move_type' => 'out_invoice',
-                    'partner_id' => $partnerId,
-                    'invoice_origin' => $order->order_id ?: (string) $order->id,
-                    'ref' => $order->order_id ?: (string) $order->id,
-                    'invoice_date' => now()->toDateString(),
-                    'invoice_line_ids' => $invoiceLines,
-                ]]
+                [[$payload]]
             ]
         );
 
@@ -236,6 +295,62 @@ class OdooService
         $reportName = $this->resolveInvoiceReportName();
 
         return rtrim((string) $this->url, '/') . "/report/pdf/{$reportName}/{$invoiceId}";
+    }
+
+    protected function downloadAndStoreInvoicePdf(Order $order, int $invoiceId): array
+    {
+        $invoicePdfUrl = $this->getInvoicePdfUrl($invoiceId);
+        $cookieJar = new CookieJar();
+
+        $authResponse = Http::withOptions(['cookies' => $cookieJar])
+            ->acceptJson()
+            ->post(rtrim((string) $this->url, '/') . '/web/session/authenticate', [
+                'jsonrpc' => '2.0',
+                'params' => [
+                    'db' => $this->db,
+                    'login' => $this->username,
+                    'password' => $this->password,
+                ],
+            ]);
+
+        if ($authResponse->failed()) {
+            throw new \RuntimeException('Unable to authenticate Odoo web session for invoice PDF download.');
+        }
+
+        $invoiceResponse = Http::withOptions(['cookies' => $cookieJar])
+            ->accept('application/pdf')
+            ->get($invoicePdfUrl);
+
+        if ($invoiceResponse->failed()) {
+            throw new \RuntimeException('Unable to download Odoo invoice PDF.');
+        }
+
+        $directory = 'odoo-invoices';
+        $filename = sprintf(
+            '%s-%s-%s.pdf',
+            now()->format('YmdHis'),
+            $order->id,
+            Str::slug((string) ($order->order_id ?: $invoiceId ?: 'invoice')),
+        );
+        $path = $directory . '/' . $filename;
+
+        Storage::disk('public')->put($path, $invoiceResponse->body());
+
+        $storedInvoice = [
+            'disk' => 'public',
+            'path' => $path,
+            'full_path' => Storage::disk('public')->path($path),
+            'url' => asset('storage/' . $path),
+        ];
+
+        Log::info('Stored Odoo invoice PDF', [
+            'order_id' => $order->id,
+            'invoice_id' => $invoiceId,
+            'invoice_pdf_url' => $invoicePdfUrl,
+            'stored_invoice' => $storedInvoice,
+        ]);
+
+        return $storedInvoice;
     }
 
     protected function resolveInvoiceReportName(): string
@@ -312,11 +427,13 @@ class OdooService
         ]);
 
         $receiptId = $this->createReceipt($partnerId, $order, $posConfig, $posOrder);
+        $storedReceipt = $this->downloadAndStorePosReceipt($order, $posOrder);
         Log::info('Odoo receipt sync completed', [
             'order_id' => $order->id,
             'receipt_id' => $receiptId,
             'selected_pos_config' => $this->summarizePosConfig($posConfig),
             'pos_order' => $posOrder,
+            'stored_receipt' => $storedReceipt,
         ]);
 
         return [
@@ -324,9 +441,13 @@ class OdooService
             'pos_order_id' => $posOrder['id'] ?? null,
             'pos_order_name' => $posOrder['name'] ?? null,
             'pos_order_reference' => $posOrder['pos_reference'] ?? null,
+            'pos_receipt_url' => $posOrder['receipt_url'] ?? null,
             'receipt_id' => $receiptId,
             'receipt_url' => $this->getReceiptUrl($receiptId),
             'receipt_pdf_url' => $this->getReceiptPdfUrl($receiptId),
+            'stored_pos_receipt_disk' => $storedReceipt['disk'] ?? null,
+            'stored_pos_receipt_path' => $storedReceipt['path'] ?? null,
+            'stored_pos_receipt_full_path' => $storedReceipt['full_path'] ?? null,
             'pos_config_id' => $posConfig['id'] ?? null,
             'pos_config_name' => $posConfig['name'] ?? null,
             'pos_session_id' => $posConfig['current_session_id'][0] ?? null,
@@ -555,7 +676,7 @@ class OdooService
                 $this->password,
                 'pos.order',
                 'read',
-                [[$posOrderId], ['id', 'name', 'pos_reference', 'tracking_number', 'state', 'session_id', 'config_id']]
+                [[$posOrderId], ['id', 'name', 'uuid', 'pos_reference', 'tracking_number', 'state', 'session_id', 'config_id']]
             ]
         );
 
@@ -563,13 +684,80 @@ class OdooService
             'id' => $posOrderId,
             'name' => $posOrders[0]['name'] ?? null,
             'pos_reference' => $posOrders[0]['pos_reference'] ?? null,
+            'uuid' => $posOrders[0]['uuid'] ?? null,
             'tracking_number' => $posOrders[0]['tracking_number'] ?? null,
             'state' => $posOrders[0]['state'] ?? null,
             'session_id' => $posOrders[0]['session_id'][0] ?? null,
             'session_name' => $posOrders[0]['session_id'][1] ?? null,
             'config_id' => $posOrders[0]['config_id'][0] ?? null,
             'config_name' => $posOrders[0]['config_id'][1] ?? null,
+            'receipt_url' => $this->getPosReceiptUrl(
+                $posOrders[0]['config_id'][0] ?? null,
+                $posOrders[0]['uuid'] ?? null,
+            ),
         ];
+    }
+
+    protected function downloadAndStorePosReceipt(Order $order, array $posOrder): array
+    {
+        if (empty($posOrder['config_id']) || empty($posOrder['uuid'])) {
+            Log::warning('Skipping POS receipt download because receipt identity is incomplete', [
+                'order_id' => $order->id,
+                'pos_order' => $posOrder,
+            ]);
+
+            return [];
+        }
+
+        $receiptUrl = $this->getPosReceiptUrl($posOrder['config_id'], $posOrder['uuid']);
+        $cookieJar = new CookieJar();
+
+        $authResponse = Http::withOptions(['cookies' => $cookieJar])
+            ->acceptJson()
+            ->post(rtrim((string) $this->url, '/') . '/web/session/authenticate', [
+                'jsonrpc' => '2.0',
+                'params' => [
+                    'db' => $this->db,
+                    'login' => $this->username,
+                    'password' => $this->password,
+                ],
+            ]);
+
+        if ($authResponse->failed()) {
+            throw new \RuntimeException('Unable to authenticate Odoo web session for POS receipt download.');
+        }
+
+        $receiptResponse = Http::withOptions(['cookies' => $cookieJar])
+            ->get($receiptUrl);
+
+        if ($receiptResponse->failed()) {
+            throw new \RuntimeException('Unable to download Odoo POS receipt HTML.');
+        }
+
+        $directory = 'odoo-receipts';
+        $filename = sprintf(
+            '%s-%s-%s.html',
+            now()->format('YmdHis'),
+            $order->id,
+            Str::slug((string) ($posOrder['pos_reference'] ?? $posOrder['name'] ?? 'receipt')),
+        );
+        $path = $directory . '/' . $filename;
+
+        Storage::disk('local')->put($path, $receiptResponse->body());
+
+        $storedReceipt = [
+            'disk' => 'local',
+            'path' => $path,
+            'full_path' => Storage::disk('local')->path($path),
+        ];
+
+        Log::info('Stored Odoo POS receipt HTML', [
+            'order_id' => $order->id,
+            'receipt_url' => $receiptUrl,
+            'stored_receipt' => $storedReceipt,
+        ]);
+
+        return $storedReceipt;
     }
 
     protected function buildPosOrderLinePayloads(Order $order): array
@@ -796,6 +984,15 @@ class OdooService
     protected function getReceiptUrl(int $receiptId): string
     {
         return rtrim((string) $this->url, '/') . "/web#id={$receiptId}&model=account.move&view_type=form";
+    }
+
+    protected function getPosReceiptUrl(?int $configId, ?string $uuid): ?string
+    {
+        if (empty($configId) || empty($uuid)) {
+            return null;
+        }
+
+        return rtrim((string) $this->url, '/') . "/pos/ui/{$configId}/receipt/{$uuid}";
     }
 
     protected function getReceiptPdfUrl(int $receiptId): string

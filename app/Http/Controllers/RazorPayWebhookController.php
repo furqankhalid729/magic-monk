@@ -92,8 +92,41 @@ class RazorPayWebhookController extends Controller
                         'odoo_invoice_id' => $odooSync['invoice_id'] ?? null,
                         'odoo_invoice_url' => $odooSync['invoice_url'] ?? null,
                         'odoo_invoice_pdf_url' => $odooSync['invoice_pdf_url'] ?? null,
+                        'odoo_stored_invoice_pdf_disk' => $odooSync['stored_invoice_pdf_disk'] ?? null,
+                        'odoo_stored_invoice_pdf_path' => $odooSync['stored_invoice_pdf_path'] ?? null,
+                        'odoo_stored_invoice_pdf_full_path' => $odooSync['stored_invoice_pdf_full_path'] ?? null,
+                        'odoo_stored_invoice_pdf_url' => $odooSync['stored_invoice_pdf_url'] ?? null,
                     ])
                 ]);
+
+                $invoiceAttachmentUrl = $odooSync['stored_invoice_pdf_url'] ?? $odooSync['invoice_pdf_url'] ?? null;
+
+                if (!empty($order->customer_phone) && !empty($invoiceAttachmentUrl)) {
+                    $interaktResponse = sendInteraktMessage(
+                        $order->customer_phone,
+                        [(string) ($order->order_id ?: $order->id)],
+                        [$invoiceAttachmentUrl],
+                        'feedback_w_nps_invoice',
+                        null
+                    );
+
+                    $order->update([
+                        'review_message_id' => $interaktResponse['id'] ?? $order->review_message_id,
+                        'additional_info' => array_merge($order->fresh()->additional_info ?? [], [
+                            'feedback_invoice_template_name' => 'feedback_w_nps_invoice',
+                            'feedback_invoice_attachment_url' => $invoiceAttachmentUrl,
+                            'feedback_invoice_message_id' => $interaktResponse['id'] ?? null,
+                            'feedback_invoice_send_error' => $interaktResponse['error'] ?? null,
+                        ]),
+                    ]);
+
+                    Log::info('Sent invoice feedback Interakt template', [
+                        'order_id' => $order->id,
+                        'template' => 'feedback_w_nps_invoice',
+                        'attachment_url' => $invoiceAttachmentUrl,
+                        'response' => $interaktResponse,
+                    ]);
+                }
 
                 Log::info('Order synced with Odoo', [
                     'order_id' => $order->id,
