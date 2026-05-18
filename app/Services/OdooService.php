@@ -19,7 +19,7 @@ class OdooService
 
     public function __construct()
     {
-        $this->url = env('ODOO_URL');
+        $this->url = $this->normalizeOdooUrl(env('ODOO_URL'));
         $this->db = env('ODOO_DB');
         $this->username = env('ODOO_USERNAME');
         $this->password = env('ODOO_PASSWORD');
@@ -72,6 +72,21 @@ class OdooService
         }
 
         return $payload['result'] ?? null;
+    }
+
+    protected function normalizeOdooUrl(?string $url): string
+    {
+        $url = rtrim(trim((string) $url), '/');
+
+        if ($url === '') {
+            throw new \RuntimeException('ODOO_URL is not configured. Set it to the full Odoo base URL, for example https://odoo.example.com.');
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('/^https?:\/\//i', $url)) {
+            throw new \RuntimeException('ODOO_URL is invalid. Set it to the full Odoo base URL, for example https://odoo.example.com.');
+        }
+
+        return $url;
     }
 
     protected function authenticate()
@@ -1073,22 +1088,10 @@ class OdooService
             }
         }
 
-        $openConfigs = $this->call(
-            'object',
-            'execute_kw',
-            [
-                $this->db,
-                $this->uid,
-                $this->password,
-                'pos.config',
-                'search_read',
-                [[['current_session_id', '!=', false]]],
-                [
-                    'fields' => ['name', 'current_session_id', 'payment_method_ids', 'journal_id', 'invoice_journal_id'],
-                    'limit' => 1,
-                ]
-            ]
-        );
+        $openConfigs = array_values(array_filter(
+            $this->searchPosConfigsByName('', 20),
+            static fn (array $posConfig): bool => !empty($posConfig['current_session_id'][0])
+        ));
 
         Log::info('Odoo POS open-session fallback candidates', [
             'candidate_count' => count($openConfigs),
@@ -1099,6 +1102,7 @@ class OdooService
             Log::info('Odoo POS config selected from open-session fallback', [
                 'selected' => $this->summarizePosConfig($openConfigs[0]),
             ]);
+
             return $openConfigs[0];
         }
 
