@@ -351,6 +351,21 @@ class OdooService
 
         $disk = Storage::disk('public');
 
+        Log::info('Odoo invoice PDF storage context', [
+            'order_id' => $order->id,
+            'invoice_id' => $invoiceId,
+            'running_in_console' => app()->runningInConsole(),
+            'php_sapi' => PHP_SAPI,
+            'disk_root' => (string) config('filesystems.disks.public.root'),
+            'disk_url' => (string) config('filesystems.disks.public.url'),
+            'public_storage_path' => public_path('storage'),
+            'public_storage_exists' => file_exists(public_path('storage')),
+            'public_storage_is_link' => is_link(public_path('storage')),
+            'public_storage_realpath' => realpath(public_path('storage')) ?: null,
+            'storage_public_realpath' => realpath(storage_path('app/public')) ?: null,
+            'target_path' => $path,
+        ]);
+
         if (! $disk->exists($directory)) {
             $disk->makeDirectory($directory);
         }
