@@ -349,13 +349,33 @@ class OdooService
         );
         $path = $directory . '/' . $filename;
 
-        Storage::disk('public')->put($path, $invoiceResponse->body());
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($directory)) {
+            $disk->makeDirectory($directory);
+        }
+
+        $stored = $disk->put($path, $invoiceResponse->body());
+        $exists = $disk->exists($path);
+        $size = $exists ? $disk->size($path) : null;
+
+        if (! $stored || ! $exists || empty($size)) {
+            throw new \RuntimeException(sprintf(
+                'Invoice PDF storage verification failed. disk=public path=%s stored=%s exists=%s size=%s full_path=%s',
+                $path,
+                $stored ? 'true' : 'false',
+                $exists ? 'true' : 'false',
+                $size ?? 'null',
+                $disk->path($path),
+            ));
+        }
 
         $storedInvoice = [
             'disk' => 'public',
             'path' => $path,
-            'full_path' => Storage::disk('public')->path($path),
-            'url' => asset('storage/' . $path),
+            'full_path' => $disk->path($path),
+            'url' => rtrim((string) config('filesystems.disks.public.url'), '/') . '/' . ltrim($path, '/'),
+            'size' => $size,
         ];
 
         Log::info('Stored Odoo invoice PDF', [

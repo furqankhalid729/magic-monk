@@ -6,6 +6,7 @@ use App\Services\OdooService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Order;
 
 class RazorPayWebhookController extends Controller
@@ -84,6 +85,27 @@ class RazorPayWebhookController extends Controller
             try {
                 $order->loadMissing('items');
                 $odooSync = app(OdooService::class)->syncOrderInvoice($order);
+
+                $storedInvoiceDisk = $odooSync['stored_invoice_pdf_disk'] ?? null;
+                $storedInvoicePath = $odooSync['stored_invoice_pdf_path'] ?? null;
+
+                if (empty($storedInvoiceDisk) || empty($storedInvoicePath)) {
+                    throw new \RuntimeException('Missing stored invoice PDF disk/path after Odoo sync.');
+                }
+
+                $storedInvoiceStorage = Storage::disk($storedInvoiceDisk);
+                $storedInvoiceExists = $storedInvoiceStorage->exists($storedInvoicePath);
+                $storedInvoiceSize = $storedInvoiceExists ? $storedInvoiceStorage->size($storedInvoicePath) : null;
+
+                if (! $storedInvoiceExists || empty($storedInvoiceSize)) {
+                    throw new \RuntimeException(sprintf(
+                        'Stored invoice PDF not found after Odoo sync. disk=%s path=%s size=%s full_path=%s',
+                        $storedInvoiceDisk,
+                        $storedInvoicePath,
+                        $storedInvoiceSize ?? 'null',
+                        $storedInvoiceStorage->path($storedInvoicePath),
+                    ));
+                }
 
                 $order->update([
                     'additional_info' => array_merge($order->additional_info ?? [], [
