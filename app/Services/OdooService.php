@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use GuzzleHttp\Cookie\CookieJar;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -340,6 +341,9 @@ class OdooService
             throw new \RuntimeException('Unable to download Odoo invoice PDF.');
         }
 
+        $invoicePdfBody = $invoiceResponse->body();
+        $invoicePdfContentType = $invoiceResponse->header('Content-Type');
+
         $directory = 'odoo-invoices';
         $filename = sprintf(
             '%s-%s-%s.pdf',
@@ -350,45 +354,72 @@ class OdooService
         $path = $directory . '/' . $filename;
 
         $disk = Storage::disk('public');
+        $diskRoot = (string) config('filesystems.disks.public.root');
+        $targetDirectory = $disk->path($directory);
+        $fullPath = $disk->path($path);
+
+        File::ensureDirectoryExists($diskRoot);
+        File::ensureDirectoryExists($targetDirectory);
 
         Log::info('Odoo invoice PDF storage context', [
             'order_id' => $order->id,
             'invoice_id' => $invoiceId,
             'running_in_console' => app()->runningInConsole(),
             'php_sapi' => PHP_SAPI,
-            'disk_root' => (string) config('filesystems.disks.public.root'),
+            'disk_root' => $diskRoot,
+            'disk_root_exists' => File::exists($diskRoot),
+            'disk_root_writable' => is_writable($diskRoot),
             'disk_url' => (string) config('filesystems.disks.public.url'),
             'public_storage_path' => public_path('storage'),
             'public_storage_exists' => file_exists(public_path('storage')),
             'public_storage_is_link' => is_link(public_path('storage')),
             'public_storage_realpath' => realpath(public_path('storage')) ?: null,
             'storage_public_realpath' => realpath(storage_path('app/public')) ?: null,
+            'target_directory' => $targetDirectory,
+            'target_directory_exists' => File::exists($targetDirectory),
+            'target_directory_writable' => is_writable($targetDirectory),
             'target_path' => $path,
+            'target_full_path' => $fullPath,
+            'response_content_type' => $invoicePdfContentType,
+            'response_body_size' => strlen($invoicePdfBody),
         ]);
 
-        if (! $disk->exists($directory)) {
-            $disk->makeDirectory($directory);
+        if (empty($invoicePdfBody)) {
+            throw new \RuntimeException('Downloaded Odoo invoice PDF is empty.');
         }
 
-        $stored = $disk->put($path, $invoiceResponse->body());
-        $exists = $disk->exists($path);
-        $size = $exists ? $disk->size($path) : null;
+        $stored = $disk->put($path, $invoicePdfBody);
 
-        if (! $stored || ! $exists || empty($size)) {
+        if (! $stored) {
+            $bytesWritten = @file_put_contents($fullPath, $invoicePdfBody);
+            $stored = $bytesWritten !== false;
+        }
+
+        clearstatcache(true, $fullPath);
+        $exists = $disk->exists($path);
+        $fileExistsOnDisk = File::exists($fullPath);
+        $size = $exists ? $disk->size($path) : ($fileExistsOnDisk ? File::size($fullPath) : null);
+
+        if (! $stored || (! $exists && ! $fileExistsOnDisk) || empty($size)) {
             throw new \RuntimeException(sprintf(
-                'Invoice PDF storage verification failed. disk=public path=%s stored=%s exists=%s size=%s full_path=%s',
+                'Invoice PDF storage verification failed. disk=public path=%s stored=%s exists=%s file_exists=%s size=%s full_path=%s dir_writable=%s root_writable=%s content_type=%s body_size=%s',
                 $path,
                 $stored ? 'true' : 'false',
                 $exists ? 'true' : 'false',
+                $fileExistsOnDisk ? 'true' : 'false',
                 $size ?? 'null',
-                $disk->path($path),
+                $fullPath,
+                is_writable($targetDirectory) ? 'true' : 'false',
+                is_writable($diskRoot) ? 'true' : 'false',
+                $invoicePdfContentType ?: 'null',
+                strlen($invoicePdfBody),
             ));
         }
 
         $storedInvoice = [
             'disk' => 'public',
             'path' => $path,
-            'full_path' => $disk->path($path),
+            'full_path' => $fullPath,
             'url' => rtrim((string) config('filesystems.disks.public.url'), '/') . '/' . ltrim($path, '/'),
             'size' => $size,
         ];
