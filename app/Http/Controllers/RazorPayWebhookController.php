@@ -17,6 +17,20 @@ class RazorPayWebhookController extends Controller
         $payload = $request->all();
         Log::info('RazorPay Webhook received', $payload);
         if (($payload['event'] ?? null) === 'payment.captured') {
+            $paymentId = data_get($payload, 'payload.payment.entity.id');
+
+            if (! empty($paymentId)) {
+                $webhookCacheKey = "razorpay-webhook-payment-captured:{$paymentId}";
+
+                if (! Cache::add($webhookCacheKey, true, now()->addMinutes(15))) {
+                    Log::info('Duplicate RazorPay payment.captured webhook ignored', [
+                        'payment_id' => $paymentId,
+                    ]);
+
+                    return response()->json(['status' => 'duplicate_ignored'], 200);
+                }
+            }
+
             $customerPhone = $payload['payload']['payment']['entity']['contact'] ?? null;
             $orderData = Cache::get('razorPay-' . $customerPhone);
             if ($orderData) {
@@ -31,6 +45,21 @@ class RazorPayWebhookController extends Controller
 
     private function updateOrderData($cacheData, $paymentDetails)
     {
+        $paymentId = $paymentDetails['id'] ?? null;
+
+        if (! empty($paymentId)) {
+            $processingCacheKey = "razorpay-order-update:{$paymentId}";
+
+            if (! Cache::add($processingCacheKey, true, now()->addMinutes(15))) {
+                Log::info('Duplicate RazorPay order update ignored', [
+                    'payment_id' => $paymentId,
+                    'order_id' => $cacheData['system_order_id'] ?? null,
+                ]);
+
+                return $cacheData;
+            }
+        }
+
         $amountPaid = $paymentDetails['amount'] / 100;
         if (!empty($cacheData['expo']['token'])) {
             $message = sendExpoPushNotification(
