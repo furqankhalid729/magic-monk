@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Agent;
 use App\Models\Order;
+use App\Services\OdooService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\CustomerSubscription;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AndroidAgentController extends Controller
 {
@@ -98,6 +101,18 @@ class AndroidAgentController extends Controller
             : null;
         $order->save();
 
+        if ($order->payment_status !== 'paid') {
+            $order->update([
+                'payment_status' => 'paid',
+                'additional_info' => array_merge($order->additional_info ?? [], [
+                    'payment_status' => 'paid',
+                ]),
+            ]);
+
+            $order->refresh();
+            $this->syncOrderInvoiceAndSendFeedback($order);
+        }
+
         $subscriptionCheck = CustomerSubscription::where('customer_phone', $order->customer_phone)
             ->exists();
 
@@ -132,5 +147,95 @@ class AndroidAgentController extends Controller
 
 
         return response()->json(['message' => 'Order status updated successfully.', 'status' => true], 200);
+    }
+
+    private function syncOrderInvoiceAndSendFeedback(Order $order): void
+    {
+        try {
+            $order->loadMissing('items');
+            $odooSync = app(OdooService::class)->syncOrderInvoice($order);
+
+            $storedInvoiceDisk = $odooSync['stored_invoice_pdf_disk'] ?? null;
+            $storedInvoicePath = $odooSync['stored_invoice_pdf_path'] ?? null;
+
+            if (empty($storedInvoiceDisk) || empty($storedInvoicePath)) {
+                throw new \RuntimeException('Missing stored invoice PDF disk/path after Odoo sync.');
+            }
+
+            $storedInvoiceStorage = Storage::disk($storedInvoiceDisk);
+            $storedInvoiceExists = $storedInvoiceStorage->exists($storedInvoicePath);
+            $storedInvoiceSize = $storedInvoiceExists ? $storedInvoiceStorage->size($storedInvoicePath) : null;
+
+            if (! $storedInvoiceExists || empty($storedInvoiceSize)) {
+                throw new \RuntimeException(sprintf(
+                    'Stored invoice PDF not found after Odoo sync. disk=%s path=%s size=%s full_path=%s',
+                    $storedInvoiceDisk,
+                    $storedInvoicePath,
+                    $storedInvoiceSize ?? 'null',
+                    $storedInvoiceStorage->path($storedInvoicePath),
+                ));
+            }
+
+            $order->update([
+                'additional_info' => array_merge($order->additional_info ?? [], [
+                    'odoo_sync_status' => 'synced',
+                    'odoo_partner_id' => $odooSync['partner_id'] ?? null,
+                    'odoo_invoice_id' => $odooSync['invoice_id'] ?? null,
+                    'odoo_invoice_url' => $odooSync['invoice_url'] ?? null,
+                    'odoo_invoice_pdf_url' => $odooSync['invoice_pdf_url'] ?? null,
+                    'odoo_stored_invoice_pdf_disk' => $odooSync['stored_invoice_pdf_disk'] ?? null,
+                    'odoo_stored_invoice_pdf_path' => $odooSync['stored_invoice_pdf_path'] ?? null,
+                    'odoo_stored_invoice_pdf_full_path' => $odooSync['stored_invoice_pdf_full_path'] ?? null,
+                    'odoo_stored_invoice_pdf_url' => $odooSync['stored_invoice_pdf_url'] ?? null,
+                ])
+            ]);
+
+            $invoiceAttachmentUrl = $odooSync['stored_invoice_pdf_url'] ?? $odooSync['invoice_pdf_url'] ?? null;
+
+            if (! empty($order->customer_phone) && ! empty($invoiceAttachmentUrl)) {
+                $interaktResponse = sendInteraktMessage(
+                    $order->customer_phone,
+                    [(string) ($order->order_id ?: $order->id)],
+                    [$invoiceAttachmentUrl],
+                    'feedback_w_nps_invoice',
+                    null
+                );
+
+                $order->update([
+                    'review_message_id' => $interaktResponse['id'] ?? $order->review_message_id,
+                    'additional_info' => array_merge($order->fresh()->additional_info ?? [], [
+                        'feedback_invoice_template_name' => 'feedback_w_nps_invoice',
+                        'feedback_invoice_attachment_url' => $invoiceAttachmentUrl,
+                        'feedback_invoice_message_id' => $interaktResponse['id'] ?? null,
+                        'feedback_invoice_send_error' => $interaktResponse['error'] ?? null,
+                    ]),
+                ]);
+
+                Log::info('Sent invoice feedback Interakt template', [
+                    'order_id' => $order->id,
+                    'template' => 'feedback_w_nps_invoice',
+                    'attachment_url' => $invoiceAttachmentUrl,
+                    'response' => $interaktResponse,
+                ]);
+            }
+
+            Log::info('Order synced with Odoo from Android agent status update', [
+                'order_id' => $order->id,
+                'invoice_id' => $odooSync['invoice_id'] ?? null,
+                'invoice_url' => $odooSync['invoice_url'] ?? null,
+            ]);
+        } catch (\Throwable $throwable) {
+            Log::error('Failed to sync order with Odoo from Android agent status update', [
+                'order_id' => $order->id,
+                'error' => $throwable->getMessage(),
+            ]);
+
+            $order->update([
+                'additional_info' => array_merge($order->additional_info ?? [], [
+                    'odoo_sync_status' => 'failed',
+                    'odoo_sync_error' => $throwable->getMessage(),
+                ])
+            ]);
+        }
     }
 }
