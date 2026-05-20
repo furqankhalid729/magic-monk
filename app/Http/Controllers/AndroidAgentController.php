@@ -126,11 +126,11 @@ class AndroidAgentController extends Controller
                 $customerSubscription->order_count
             ], [asset('storage/feedback.jpeg')], 'subs_backup_paymentfm', "");
         } else {
-            $response = sendInteraktMessage($order->customer_phone, [
-                (string) $order->order_id
-            ], [
-                'https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_sample/CA1CykiSSOY4/Why%20Monk%20Fruit%20is%20the%20Best.jpeg?se=2031-04-26T09%3A01%3A40Z&sp=rt&sv=2019-12-12&sr=b&sig=iOeVD1TTeyj6mPeLd02LyP1xCPD3m8ceYmE%2B4ZolgFk%3D'
-            ], 'feedback_with_nps', "");
+            // $response = sendInteraktMessage($order->customer_phone, [
+            //     (string) $order->order_id
+            // ], [
+            //     'https://interaktprodmediastorage.blob.core.windows.net/mediaprodstoragecontainer/04df994b-7058-44f8-b916-7243184e7f63/message_template_sample/CA1CykiSSOY4/Why%20Monk%20Fruit%20is%20the%20Best.jpeg?se=2031-04-26T09%3A01%3A40Z&sp=rt&sv=2019-12-12&sr=b&sig=iOeVD1TTeyj6mPeLd02LyP1xCPD3m8ceYmE%2B4ZolgFk%3D'
+            // ], 'feedback_with_nps', "");
         }
         $order->review_message_id = $response['id'] ?? null;
         $order->save();
