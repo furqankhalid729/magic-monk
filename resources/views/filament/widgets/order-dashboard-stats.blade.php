@@ -6,7 +6,7 @@
         </div>
 
         {{-- Stats Cards --}}
-        <div class="mt-5-force grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+        <div class="mt-5-force grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach ($this->getStats() as $stat)
                 <div class="bg-white dark:bg-gray-900 overflow-hidden shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
                     <div class="p-6">

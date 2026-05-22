@@ -85,9 +85,16 @@ class OrderDashboardStats extends Widget implements HasForms
             $query->whereDate('created_at', '<=', $this->data['toDate']);
         }
 
+        $deliveredOrderCount = (clone $query)
+            ->where('status', 'delivered')
+            ->count();
+
         $orderCount = $query->count();
-        $totalRevenue = $query->sum('total_amount') ?? 0; 
-        $avgOrderValue = $orderCount > 0 ? $totalRevenue / $orderCount : 0;
+        $overallRevenue = $query->sum('total_amount') ?? 0;
+        $deliveredRevenue = (clone $query)
+            ->where('status', 'delivered')
+            ->sum('total_amount') ?? 0;
+        $avgOrderValue = $deliveredOrderCount > 0 ? $deliveredRevenue / $deliveredOrderCount : 0;
 
         return [
             [
@@ -98,8 +105,15 @@ class OrderDashboardStats extends Widget implements HasForms
                 'icon' => 'heroicon-o-shopping-bag',
             ],
             [
+                'label' => 'Total Orders Delivered',
+                'value' => number_format($deliveredOrderCount),
+                'description' => $this->getDateRangeDescription(),
+                'color' => 'success',
+                'icon' => 'heroicon-o-shopping-bag',
+            ],
+            [
                 'label' => 'Total Revenue',
-                'value' => '₹' . number_format($totalRevenue, 2),
+                'value' => '₹' . number_format($deliveredRevenue, 2),
                 'description' => $this->getDateRangeDescription(),
                 'color' => 'primary',
                 'icon' => 'heroicon-o-currency-dollar',

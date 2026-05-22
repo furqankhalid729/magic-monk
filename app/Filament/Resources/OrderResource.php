@@ -54,6 +54,7 @@ class OrderResource extends Resource
                 TextColumn::make('customer_name')->sortable()->searchable(),
                 TextColumn::make('agent_number')->sortable()->searchable(),
                 TextColumn::make('total_amount')->sortable()->searchable(),
+                TextColumn::make('status')->sortable()->searchable(),
                 TextColumn::make('order_time')->dateTime()->sortable(),
             ])
             ->filters([
