@@ -89,6 +89,17 @@ class OrderDashboardStats extends Widget implements HasForms
             ->where('status', 'delivered')
             ->count();
 
+        $manualPaidOrdersQuery = (clone $query)
+            ->where('payment_status', 'paid')
+            ->where(function ($manualPaidQuery) {
+                $manualPaidQuery
+                    ->whereNull('additional_info->paid_online')
+                    ->orWhere('additional_info->paid_online', '<=', 0);
+            });
+
+        $manualPaidOrderCount = (clone $manualPaidOrdersQuery)->count();
+        $manualPaidAmount = (clone $manualPaidOrdersQuery)->sum('total_amount') ?? 0;
+
         $orderCount = $query->count();
         $overallRevenue = $query->sum('total_amount') ?? 0;
         $deliveredRevenue = (clone $query)
@@ -110,6 +121,20 @@ class OrderDashboardStats extends Widget implements HasForms
                 'description' => $this->getDateRangeDescription(),
                 'color' => 'success',
                 'icon' => 'heroicon-o-shopping-bag',
+            ],
+            [
+                'label' => 'Orders Manually Paid',
+                'value' => number_format($manualPaidOrderCount),
+                'description' => $this->getDateRangeDescription(),
+                'color' => 'info',
+                'icon' => 'heroicon-o-shopping-bag',
+            ],
+            [
+                'label' => 'Amount Manually Paid',
+                'value' => '₹' . number_format($manualPaidAmount, 2),
+                'description' => $this->getDateRangeDescription(),
+                'color' => 'info',
+                'icon' => 'heroicon-o-currency-dollar',
             ],
             [
                 'label' => 'Total Revenue',
