@@ -124,4 +124,22 @@ class ApiController extends Controller
         return response()->json($products);
     }
 
+    public function getReferralUrl(Request $request)
+    {
+        $phoneNumber = $request->query('phone_number');
+        if (!$phoneNumber) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Phone number parameter is required.'
+            ], 400);
+        }
+
+        $referralUrl = env('APP_URL') . '/register-referee?referral=' . urlencode($phoneNumber);
+
+        return response()->json([
+            'status' => 'success',
+            'referral_url' => $referralUrl
+        ]);
+    }
+
 }

@@ -24,6 +24,7 @@ Route::controller(ApiController::class)->group(function () {
     Route::get('/get-locations', 'getNearbyLocations')->name('api.getLocations');
     Route::get('/get-stores', 'getStores')->name('api.getStores');
     Route::get('/get-products', 'getProducts')->name('api.getProducts');
+    Route::get('get-referral-url', 'getReferralUrl')->name('api.getReferralUrl');
 });
 
 Route::controller(InventoryTransferController::class)->group(function () {
