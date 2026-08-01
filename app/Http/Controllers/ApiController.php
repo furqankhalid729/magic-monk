@@ -7,6 +7,9 @@ use App\Models\Location;
 use App\Models\Agent;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class ApiController extends Controller
@@ -127,6 +130,7 @@ class ApiController extends Controller
     public function getReferralUrl(Request $request)
     {
         $phoneNumber = $request->query('phone_number');
+
         if (!$phoneNumber) {
             return response()->json([
                 'status' => 'error',
@@ -134,12 +138,33 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $referralUrl = env('APP_URL') . '/register-referee?referral=' . urlencode($phoneNumber);
+        $referralUrl = config('app.url') . '/register-referee?referral=' . urlencode($phoneNumber);
+
+        // Directory
+        $directory = public_path('images/referrals');
+
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        // File name (same phone always gets same QR)
+        $fileName = md5($phoneNumber) . '.png';
+        $filePath = $directory . '/' . $fileName;
+
+        // Generate only if it doesn't already exist
+        if (!File::exists($filePath)) {
+            QrCode::format('png')
+                ->size(300)
+                ->margin(2)
+                ->generate($referralUrl, $filePath);
+        }
+
+        $qrCodeUrl = asset('images/referrals/' . $fileName);
 
         return response()->json([
             'status' => 'success',
-            'referral_url' => $referralUrl
+            'referral_url' => $referralUrl,
+            'qr_code_url' => $qrCodeUrl,
         ]);
     }
-
 }
