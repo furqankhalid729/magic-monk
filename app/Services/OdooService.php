@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Location;
 use App\Models\Product;
 use App\Models\Order;
 use GuzzleHttp\Cookie\CookieJar;
@@ -1281,9 +1282,59 @@ class OdooService
         return $reports[0]['report_name'] ?? 'account.report_receipt';
     }
 
+    public function getPosConfigMappingOptions(?string $search = null, int $limit = 50): array
+    {
+        return collect($this->searchPosConfigsByName(trim((string) $search), $limit))
+            ->mapWithKeys(fn (array $posConfig): array => [
+                (int) ($posConfig['id'] ?? 0) => $this->formatPosConfigMappingLabel($posConfig),
+            ])
+            ->filter(fn (string $label, int $id): bool => $id > 0)
+            ->all();
+    }
+
+    public function getPosConfigMappingLabel(int $posConfigId): ?string
+    {
+        $posConfig = $this->findPosConfigForMapping($posConfigId);
+
+        return $posConfig ? $this->formatPosConfigMappingLabel($posConfig) : null;
+    }
+
+    public function findPosConfigForMapping(int $posConfigId): ?array
+    {
+        $posConfigs = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'pos.config',
+                'read',
+                [[$posConfigId], ['name', 'current_session_id', 'payment_method_ids', 'journal_id', 'invoice_journal_id']]
+            ]
+        );
+
+        if (empty($posConfigs[0])) {
+            return null;
+        }
+
+        return $posConfigs[0];
+    }
+
     protected function resolvePosConfigForBuilding(?string $building): ?array
     {
         $building = trim((string) $building);
+        $mappedPosConfig = $this->findMappedLocalPosConfigForBuilding($building);
+
+        if ($mappedPosConfig !== null) {
+            Log::info('Resolved Odoo POS config from local location mapping', [
+                'building' => $building,
+                'selected' => $this->summarizePosConfig($mappedPosConfig),
+            ]);
+
+            return $mappedPosConfig;
+        }
+
         $searchTerms = array_values(array_filter([
             $building,
             trim((string) preg_replace('/\s*\(.*/', '', $building)),
@@ -1350,6 +1401,31 @@ class OdooService
         return $fallbackConfigs[0] ?? null;
     }
 
+    protected function findMappedLocalPosConfigForBuilding(string $building): ?array
+    {
+        if ($building === '') {
+            return null;
+        }
+
+        $normalizedBuilding = mb_strtolower($building);
+        $location = Location::query()
+            ->whereNotNull('odoo_pos_config_id')
+            ->where(function ($query) use ($building, $normalizedBuilding) {
+                $query
+                    ->where('building_name', $building)
+                    ->orWhere('handle', $building)
+                    ->orWhereRaw('LOWER(building_name) = ?', [$normalizedBuilding])
+                    ->orWhereRaw('LOWER(handle) = ?', [$normalizedBuilding]);
+            })
+            ->first();
+
+        if (!$location || empty($location->odoo_pos_config_id)) {
+            return null;
+        }
+
+        return $this->findPosConfigForMapping((int) $location->odoo_pos_config_id);
+    }
+
     protected function searchPosConfigsByName(string $name, int $limit): array
     {
         $domain = [];
@@ -1394,6 +1470,17 @@ class OdooService
             'invoice_journal_id' => $posConfig['invoice_journal_id'][0] ?? null,
             'invoice_journal_name' => $posConfig['invoice_journal_id'][1] ?? null,
         ];
+    }
+
+    protected function formatPosConfigMappingLabel(array $posConfig): string
+    {
+        $summary = $this->summarizePosConfig($posConfig) ?? [];
+        $parts = array_filter([
+            $summary['name'] ?? 'Unnamed Odoo Location',
+            !empty($summary['session_name']) ? 'Session: ' . $summary['session_name'] : null,
+        ]);
+
+        return implode(' | ', $parts);
     }
 
     protected function normalizeOdooId($value): int

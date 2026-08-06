@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LocationResource\Pages;
 use App\Filament\Resources\LocationResource\RelationManagers;
 use App\Models\Location;
+use App\Services\OdooService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -40,6 +41,48 @@ class LocationResource extends Resource
                 TextInput::make('building_name')
                     ->maxLength(20)
                     ->required(),
+
+                TextInput::make('handle')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255)
+                    ->helperText('Unique handle for this location.'),
+
+                Select::make('odoo_pos_config_id')
+                    ->label('Odoo Location')
+                    ->searchable()
+                    ->placeholder('Search Odoo POS locations')
+                    ->getSearchResultsUsing(fn (string $search): array => rescue(
+                        fn () => self::getOdooService()->getPosConfigMappingOptions($search),
+                        [],
+                        report: false,
+                    ))
+                    ->getOptionLabelUsing(fn ($value): ?string => blank($value)
+                        ? null
+                        : rescue(
+                            fn () => self::getOdooService()->getPosConfigMappingLabel((int) $value),
+                            "Mapped Odoo Location #{$value}",
+                            report: false,
+                        ))
+                    ->live()
+                    ->afterStateUpdated(function (Forms\Set $set, $state): void {
+                        if (blank($state)) {
+                            $set('odoo_pos_config_name', null);
+
+                            return;
+                        }
+
+                        $posConfig = rescue(
+                            fn () => self::getOdooService()->findPosConfigForMapping((int) $state),
+                            null,
+                            report: false,
+                        );
+
+                        $set('odoo_pos_config_name', $posConfig['name'] ?? null);
+                    })
+                    ->helperText('Maps this location to an Odoo POS location/register.'),
+
+                Forms\Components\Hidden::make('odoo_pos_config_name'),
 
                 TextInput::make('google_map_url')
                     ->url()
@@ -113,6 +156,17 @@ class LocationResource extends Resource
                     ->sortable()
                     ->searchable(),
 
+                TextColumn::make('handle')
+                    ->label('Handle')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('odoo_pos_config_name')
+                    ->label('Odoo Location')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 IconColumn::make('is_offer_live')
                     ->label('Offer Live')
                     ->boolean()
@@ -152,5 +206,10 @@ class LocationResource extends Resource
             'create' => Pages\CreateLocation::route('/create'),
             'edit' => Pages\EditLocation::route('/{record}/edit'),
         ];
+    }
+
+    protected static function getOdooService(): OdooService
+    {
+        return app(OdooService::class);
     }
 }

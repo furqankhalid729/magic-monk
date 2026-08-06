@@ -9,6 +9,9 @@ class Location extends Model
     protected $fillable = [
         'type',
         'building_name',
+        'handle',
+        'odoo_pos_config_id',
+        'odoo_pos_config_name',
         'google_map_url',
         'agent_id',
         'agent_logged_in',
