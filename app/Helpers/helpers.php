@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\CustomerSubscription;
 use App\Models\SubscriptionOffer;
 use App\Models\CustomerReferrals;
+use App\Models\Referral;
 use App\Models\WhatsAppPayReminder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -420,7 +421,16 @@ function nextWorkingDay(Carbon $date)
 if (!function_exists('addReferrerCoupon')) {
     function addReferrerCoupon($customer_number, $name)
     {
-        $referral = CustomerReferrals::where('referee_number', $customer_number)
+        $referralLink = Referral::where('customer_number', $customer_number)
+            ->first();
+
+        if (!$referralLink) {
+            return false;
+        }
+
+        $referral = CustomerReferrals::where('referral_code', $referralLink->referral_id)
+            ->where('reward_given', false)
+            ->where('first_order_done', false)
             ->first();
 
         if ($referral && !$referral->reward_given && !$referral->first_order_done) {

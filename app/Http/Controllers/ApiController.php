@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Location;
 use App\Models\Agent;
 use App\Models\Product;
+use App\Models\CustomerReferrals;
+use App\Models\Referral;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -138,7 +140,12 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $referralUrl = config('app.url') . '/register-referee?referral=' . urlencode($phoneNumber);
+        $referral = Referral::firstOrCreate(
+            ['customer_number' => $phoneNumber],
+            ['referral_id' => $this->generateReferralId()]
+        );
+
+        $referralUrl = config('app.url') . '/register-referee?referral=' . urlencode($referral->referral_id);
 
         // Directory
         $directory = public_path('images/referrals');
@@ -166,5 +173,14 @@ class ApiController extends Controller
             'referral_url' => $referralUrl,
             'qr_code_url' => $qrCodeUrl,
         ]);
+    }
+
+    private function generateReferralId(): string
+    {
+        do {
+            $referralId = strtoupper(Str::random(8));
+        } while (Referral::where('referral_id', $referralId)->exists());
+
+        return $referralId;
     }
 }

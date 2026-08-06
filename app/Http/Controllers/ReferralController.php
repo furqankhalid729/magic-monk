@@ -18,7 +18,7 @@ class ReferralController extends Controller
             return redirect("https://wa.me/{$whatsappNumber}?text={$message}");
         }
 
-        $checkExisting = Referral::where('referee', $referee)
+        $checkExisting = Referral::where('customer_number', $referee)
             ->first();
 
         if ($checkExisting) {
@@ -26,9 +26,8 @@ class ReferralController extends Controller
         }
 
         $referral = new Referral();
-        $referral->referrer = $referrer;
-        $referral->referee  = $referee;
-        $referral->status   = 'pending';
+        $referral->referral_id = $referrer;
+        $referral->customer_number = $referee;
         $referral->save();
        return redirect("https://wa.me/{$whatsappNumber}?text={$message}");
     }

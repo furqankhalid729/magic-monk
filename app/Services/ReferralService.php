@@ -13,12 +13,10 @@ class ReferralService
     public function createReferral(array $data): CustomerReferrals
     {
         $referral = CustomerReferrals::create([
-            'referee_number'  => $data['refereePhone'],
+            'referral_code'   => $data['referralCode'] ?? $data['referrerPhone'],
             'referrer_number' => $data['referrerPhone'],
             'first_order_done' => false,
             'reward_given'    => false,
-            'joined_at'       => now(),
-            'ordered_at'      => null,
         ]);
 
         // Then create coupon
