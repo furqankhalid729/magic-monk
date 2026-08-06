@@ -42,12 +42,32 @@ class AndroidAgentController extends Controller
             'phoneNumber' => 'required|integer',
         ]);
 
-        $agentId = $request->query('phoneNumber');
-        if (!str_starts_with($agentId, '+91')) {
-            $agentId = '+91' . ltrim($agentId, '+');
+        $phoneNumber = (string) $request->query('phoneNumber');
+        $normalizedPhoneNumber = preg_replace('/^\+91/', '', $phoneNumber);
+        $agentNumber = $normalizedPhoneNumber;
+
+        if (!str_starts_with($agentNumber, '+91')) {
+            $agentNumber = '+91' . ltrim($agentNumber, '+');
         }
 
-        $orders = Order::where('agent_number', $agentId)
+        $agent = Agent::with('locations')
+            ->where('whatsapp_number', $normalizedPhoneNumber)
+            ->first();
+
+        $assignedBuildings = $agent?->locations
+            ?->pluck('building_name')
+            ->filter()
+            ->values()
+            ->all() ?? [];
+
+        $orders = Order::query()
+            ->where(function ($query) use ($agentNumber, $assignedBuildings) {
+                $query->where('agent_number', $agentNumber);
+
+                if ($assignedBuildings !== []) {
+                    $query->orWhereIn('building', $assignedBuildings);
+                }
+            })
             ->with(['items'])
             ->orderBy('created_at', 'desc')
             ->get();

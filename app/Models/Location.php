@@ -35,6 +35,21 @@ class Location extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    public function agents()
+    {
+        return $this->belongsToMany(Agent::class)
+            ->withTimestamps();
+    }
+
+    public function primaryAgent(): ?Agent
+    {
+        if ($this->relationLoaded('agents') && $this->agents->isNotEmpty()) {
+            return $this->agents->first();
+        }
+
+        return $this->agent;
+    }
+
     public function additionalOffers()
     {
         return $this->hasMany(AdditionalOffer::class);

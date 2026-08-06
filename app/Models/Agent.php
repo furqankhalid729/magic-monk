@@ -22,6 +22,12 @@ class Agent extends Model
 
     public function locations()
     {
+        return $this->belongsToMany(Location::class)
+            ->withTimestamps();
+    }
+
+    public function primaryLocations()
+    {
         return $this->hasMany(Location::class);
     }
 }

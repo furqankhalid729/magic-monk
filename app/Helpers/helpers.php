@@ -164,21 +164,57 @@ if (!function_exists('getAgentPhoneNumber')) {
     {
         Log::info('getAgentPhoneNumber called with building', ['building' => $building]);
 
-        $location = Location::where('building_name', $building)->get();
+        $location = Location::with(['agents', 'agent'])
+            ->where('building_name', $building)
+            ->orWhere('handle', $building)
+            ->first();
 
-        if ($location->isNotEmpty() && $location->first()->agent) {
-            $agent = $location->first()->agent;
+        $agents = collect();
+
+        if ($location) {
+            $agents = $location->agents;
+
+            if ($agents->isEmpty() && $location->agent) {
+                $agents = collect([$location->agent]);
+            }
+        }
+
+        if ($agents->isNotEmpty()) {
+            $primaryAgent = $agents->first();
+
             return [
-                'whatsapp_number' => $agent->whatsapp_number,
-                'token' => $agent->notification_token,
-                'name' => $agent->name
+                'building' => $location?->building_name,
+                'whatsapp_number' => $primaryAgent->whatsapp_number,
+                'whatsapp_numbers' => $agents
+                    ->pluck('whatsapp_number')
+                    ->filter()
+                    ->map(fn ($number) => str_starts_with((string) $number, '+91') ? (string) $number : '+91' . ltrim((string) $number, '+'))
+                    ->values()
+                    ->all(),
+                'token' => $agents
+                    ->pluck('notification_token')
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'name' => $primaryAgent->name,
+                'names' => $agents->pluck('name')->filter()->values()->all(),
+                'agents' => $agents->map(fn ($agent) => [
+                    'id' => $agent->id,
+                    'name' => $agent->name,
+                    'whatsapp_number' => $agent->whatsapp_number,
+                    'notification_token' => $agent->notification_token,
+                ])->values()->all(),
             ];
         }
 
         return [
+            'building' => $building,
             'whatsapp_number' => '9867806668',
-            'token' => 'ExponentPushToken[KWTa_jDgmuBhoOVKmDzSUS]',
-            'name' => 'Monku'
+            'whatsapp_numbers' => ['+919867806668'],
+            'token' => ['ExponentPushToken[KWTa_jDgmuBhoOVKmDzSUS]'],
+            'name' => 'Monku',
+            'names' => ['Monku'],
+            'agents' => [],
         ];
     }
 }
@@ -215,14 +251,24 @@ if (!function_exists('createInteraktEvent')) {
 if (!function_exists('sendExpoPushNotification')) {
     function sendExpoPushNotification($token, $title, $body, $data = [])
     {
-        $response = Http::post('https://exp.host/--/api/v2/push/send', [
-            'to' => $token,
+        $tokens = is_array($token) ? $token : [$token];
+        $tokens = array_values(array_filter($tokens));
+
+        if ($tokens === []) {
+            return [];
+        }
+
+        $messages = array_map(static fn (string $pushToken): array => [
+            'to' => $pushToken,
             'title' => $title,
             'body' => $body,
             'data' => $data,
-            "sound" => "notification",
+            'sound' => 'notification',
             'priority' => 'high',
-        ]);
+        ], $tokens);
+
+        $payload = count($messages) === 1 ? $messages[0] : $messages;
+        $response = Http::post('https://exp.host/--/api/v2/push/send', $payload);
 
         return $response->json();
     }

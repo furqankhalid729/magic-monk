@@ -121,9 +121,12 @@ class LocationResource extends Resource
                     ->label('Pincode')
                     ->required(),
 
-                Select::make('agent_id')
-                    ->relationship('agent', 'name')
+                Select::make('agents')
+                    ->label('Agents Assigned')
+                    ->relationship('agents', 'name')
+                    ->multiple()
                     ->searchable()
+                    ->preload()
                     ->required(),
 
                 Toggle::make('agent_logged_in')
@@ -174,9 +177,10 @@ class LocationResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->sortable(),
 
-                TextColumn::make('agent.name')
-                    ->label('Agent Assigned')
-                    ->sortable()
+                TextColumn::make('agents.name')
+                    ->label('Agents Assigned')
+                    ->badge()
+                    ->separator(', ')
                     ->searchable(),
             ])
             ->filters([
