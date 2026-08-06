@@ -13,7 +13,7 @@ class ReferralController extends Controller
         $referrer = $request->query('referral');
         $referee  = $request->query('referee');
         $whatsappNumber = env('MONK_WHATSAPP_NUMBER');
-        $message = urlencode("Hi");
+        $message = urlencode("I want to Try the Magic (MonkMagic Zero Sugar Icecream Starting ₹9)");
         
         if (empty($referrer) || empty($referee)) {
             return redirect("https://wa.me/{$whatsappNumber}?text={$message}");
