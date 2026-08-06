@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use App\Models\Order;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\File;
@@ -935,9 +936,64 @@ class OdooService
         return (int) $paymentMethods[0]['id'];
     }
 
+    public function getProductMappingOptions(?string $search = null, int $limit = 50): array
+    {
+        return collect($this->searchPosProductsForMapping($search, $limit))
+            ->mapWithKeys(fn (array $product): array => [
+                (int) $product['id'] => $this->formatProductMappingLabel($product),
+            ])
+            ->all();
+    }
+
+    public function getProductMappingLabel(int $productId): ?string
+    {
+        $product = $this->findProductForMapping($productId);
+
+        return $product ? $this->formatProductMappingLabel($product) : null;
+    }
+
+    public function findProductForMapping(int $productId): ?array
+    {
+        $products = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'product.product',
+                'read',
+                [[$productId], ['id', 'name', 'default_code', 'barcode', 'available_in_pos']]
+            ]
+        );
+
+        if (empty($products[0])) {
+            return null;
+        }
+
+        return [
+            'id' => (int) ($products[0]['id'] ?? $productId),
+            'name' => $products[0]['name'] ?? null,
+            'default_code' => $products[0]['default_code'] ?? null,
+            'barcode' => $products[0]['barcode'] ?? null,
+            'available_in_pos' => (bool) ($products[0]['available_in_pos'] ?? false),
+        ];
+    }
+
     protected function resolveOrCreatePosProduct(?string $name, float $price): array
     {
         $name = trim((string) $name) ?: 'Magic Monk POS Item';
+        $mappedProduct = $this->findMappedLocalProductForOrderItem($name);
+
+        if ($mappedProduct !== null) {
+            Log::info('Matched mapped Odoo POS product for order item', [
+                'item_name' => $name,
+                'product' => $mappedProduct,
+            ]);
+
+            return $mappedProduct;
+        }
+
         $product = $this->findPosProductByName($name);
 
         if ($product !== null) {
@@ -1009,6 +1065,108 @@ class OdooService
         ]);
 
         return $product;
+    }
+
+    protected function searchPosProductsForMapping(?string $search = null, int $limit = 50): array
+    {
+        $domain = [['available_in_pos', '=', true]];
+        $search = trim((string) $search);
+
+        if ($search !== '') {
+            $domain = [
+                '&',
+                ['available_in_pos', '=', true],
+                '|',
+                '|',
+                ['name', 'ilike', $search],
+                ['default_code', 'ilike', $search],
+                ['barcode', 'ilike', $search],
+            ];
+        }
+
+        $products = $this->call(
+            'object',
+            'execute_kw',
+            [
+                $this->db,
+                $this->uid,
+                $this->password,
+                'product.product',
+                'search_read',
+                [$domain],
+                [
+                    'fields' => ['id', 'name', 'default_code', 'barcode'],
+                    'limit' => $limit,
+                    'order' => 'name asc',
+                ]
+            ]
+        );
+
+        return collect($products ?? [])
+            ->map(fn (array $product): array => [
+                'id' => (int) ($product['id'] ?? 0),
+                'name' => $product['name'] ?? null,
+                'default_code' => $product['default_code'] ?? null,
+                'barcode' => $product['barcode'] ?? null,
+            ])
+            ->filter(fn (array $product): bool => $product['id'] > 0)
+            ->values()
+            ->all();
+    }
+
+    protected function formatProductMappingLabel(array $product): string
+    {
+        $parts = array_filter([
+            $product['name'] ?? 'Unnamed Product',
+            $product['default_code'] ? 'SKU: ' . $product['default_code'] : null,
+            $product['barcode'] ? 'Barcode: ' . $product['barcode'] : null,
+        ]);
+
+        return implode(' | ', $parts);
+    }
+
+    protected function findMappedLocalProductForOrderItem(string $itemName): ?array
+    {
+        $identifier = trim($itemName);
+
+        if ($identifier === '') {
+            return null;
+        }
+
+        $normalizedIdentifier = mb_strtolower($identifier);
+        $localProduct = Product::query()
+            ->whereNotNull('odoo_product_id')
+            ->where(function ($query) use ($identifier, $normalizedIdentifier) {
+                $query
+                    ->where('name', $identifier)
+                    ->orWhere('sku', $identifier)
+                    ->orWhereRaw('LOWER(name) = ?', [$normalizedIdentifier])
+                    ->orWhereRaw('LOWER(sku) = ?', [$normalizedIdentifier]);
+            })
+            ->first();
+
+        if (!$localProduct || empty($localProduct->odoo_product_id)) {
+            return null;
+        }
+
+        $mappedProduct = $this->findProductForMapping((int) $localProduct->odoo_product_id);
+
+        if ($mappedProduct === null) {
+            return null;
+        }
+
+        if (empty($mappedProduct['available_in_pos'])) {
+            Log::warning('Mapped Odoo product is not available in POS', [
+                'local_product_id' => $localProduct->id,
+                'local_product_name' => $localProduct->name,
+                'odoo_product_id' => $localProduct->odoo_product_id,
+            ]);
+        }
+
+        return [
+            'id' => (int) $mappedProduct['id'],
+            'name' => $mappedProduct['name'] ?? $localProduct->odoo_product_name ?? $localProduct->name,
+        ];
     }
 
     protected function findPosProductByName(string $name): ?array

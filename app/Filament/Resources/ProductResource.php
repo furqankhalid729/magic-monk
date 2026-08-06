@@ -5,7 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
+use App\Services\OdooService;
 use Filament\Forms;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -27,6 +30,43 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('name')->required(),
                 TextInput::make('sku')->required(),
+                Select::make('odoo_product_id')
+                    ->label('Odoo Product')
+                    ->searchable()
+                    ->placeholder('Search Odoo POS products')
+                    ->getSearchResultsUsing(fn (string $search): array => rescue(
+                        fn () => self::getOdooService()->getProductMappingOptions($search),
+                        [],
+                        report: false,
+                    ))
+                    ->getOptionLabelUsing(fn ($value): ?string => blank($value)
+                        ? null
+                        : rescue(
+                            fn () => self::getOdooService()->getProductMappingLabel((int) $value),
+                            "Mapped Odoo Product #{$value}",
+                            report: false,
+                        ))
+                    ->live()
+                    ->afterStateUpdated(function (Forms\Set $set, $state): void {
+                        if (blank($state)) {
+                            $set('odoo_product_sku', null);
+                            $set('odoo_product_name', null);
+
+                            return;
+                        }
+
+                        $product = rescue(
+                            fn () => self::getOdooService()->findProductForMapping((int) $state),
+                            null,
+                            report: false,
+                        );
+
+                        $set('odoo_product_sku', $product['default_code'] ?? null);
+                        $set('odoo_product_name', $product['name'] ?? null);
+                    })
+                    ->helperText('Maps this local product to an Odoo POS product for order sync.'),
+                Hidden::make('odoo_product_sku'),
+                Hidden::make('odoo_product_name'),
                 TextInput::make('price')
                     ->numeric()
                     ->rules(['numeric', 'min:0'])
@@ -53,6 +93,16 @@ class ProductResource extends Resource
                     ->label('SKU')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('odoo_product_name')
+                    ->label('Odoo Product')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('odoo_product_sku')
+                    ->label('Odoo SKU')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('price')
                     ->label('Price')
@@ -90,5 +140,10 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    protected static function getOdooService(): OdooService
+    {
+        return app(OdooService::class);
     }
 }
