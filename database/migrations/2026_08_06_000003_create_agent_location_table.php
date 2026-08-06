@@ -14,8 +14,20 @@ return new class extends Migration
     {
         Schema::create('agent_location', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('location_id')->constrained()->cascadeOnDelete();
+
+            $table->unsignedInteger('agent_id');
+            $table->unsignedBigInteger('location_id');
+
+            $table->foreign('agent_id')
+                ->references('id')
+                ->on('agents')
+                ->cascadeOnDelete();
+
+            $table->foreign('location_id')
+                ->references('id')
+                ->on('locations')
+                ->cascadeOnDelete();
+
             $table->timestamps();
 
             $table->unique(['agent_id', 'location_id']);
@@ -26,7 +38,7 @@ return new class extends Migration
             ->whereNotNull('agent_id')
             ->select('id as location_id', 'agent_id')
             ->get()
-            ->map(fn ($row) => [
+            ->map(fn($row) => [
                 'agent_id' => $row->agent_id,
                 'location_id' => $row->location_id,
                 'created_at' => $now,
