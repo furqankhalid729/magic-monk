@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\SurveyController;
+use App\Http\Controllers\ReferralController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,3 +48,5 @@ Route::get('/terms-and-conditions', function () {
 Route::get('/refund-and-cancellation', function () {
     return view('refund');
 });
+
+Route::get('/register-referee', [ReferralController::class, 'add'])->name('add.referral');
