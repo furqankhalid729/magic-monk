@@ -7,31 +7,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    protected string $agentIdType = 'bigint';
-    protected string $locationIdType = 'bigint';
+    protected array $agentIdColumn = ['type' => 'bigint', 'unsigned' => true];
+    protected array $locationIdColumn = ['type' => 'bigint', 'unsigned' => true];
 
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        $this->agentIdType = $this->resolveIdColumnType('agents');
-        $this->locationIdType = $this->resolveIdColumnType('locations');
+        $this->agentIdColumn = $this->resolveIdColumnDefinition('agents');
+        $this->locationIdColumn = $this->resolveIdColumnDefinition('locations');
 
         Schema::create('agent_location', function (Blueprint $table) {
             $table->id();
 
-            if ($this->agentIdType === 'int') {
-                $table->unsignedInteger('agent_id');
-            } else {
-                $table->unsignedBigInteger('agent_id');
-            }
-
-            if ($this->locationIdType === 'int') {
-                $table->unsignedInteger('location_id');
-            } else {
-                $table->unsignedBigInteger('location_id');
-            }
+            $this->addMatchingIdColumn($table, 'agent_id', $this->agentIdColumn);
+            $this->addMatchingIdColumn($table, 'location_id', $this->locationIdColumn);
 
             $table->timestamps();
 
@@ -76,28 +67,58 @@ return new class extends Migration
         Schema::dropIfExists('agent_location');
     }
 
-    protected function resolveIdColumnType(string $tableName): string
+    protected function resolveIdColumnDefinition(string $tableName): array
     {
+        $default = ['type' => 'bigint', 'unsigned' => true];
+
         try {
             if (DB::getDriverName() === 'mysql') {
-                $databaseName = DB::getDatabaseName();
-                $column = DB::table('information_schema.columns')
-                    ->select('DATA_TYPE')
-                    ->where('TABLE_SCHEMA', $databaseName)
-                    ->where('TABLE_NAME', $tableName)
-                    ->where('COLUMN_NAME', 'id')
-                    ->first();
+                // SHOW COLUMNS is typically permitted even when information_schema access is restricted.
+                $column = DB::selectOne("SHOW COLUMNS FROM `{$tableName}` LIKE 'id'");
+                $columnType = strtolower((string) ($column->Type ?? ''));
 
-                $dataType = strtolower((string) ($column->DATA_TYPE ?? ''));
-
-                if (in_array($dataType, ['int', 'integer'], true)) {
-                    return 'int';
+                if ($columnType === '') {
+                    return $default;
                 }
+
+                $type = str_contains($columnType, 'bigint') ? 'bigint' : 'int';
+                $unsigned = str_contains($columnType, 'unsigned');
+
+                return [
+                    'type' => $type,
+                    'unsigned' => $unsigned,
+                ];
             }
         } catch (\Throwable $throwable) {
             // Fallback to bigint when schema introspection is unavailable.
         }
 
-        return 'bigint';
+        return $default;
+    }
+
+    protected function addMatchingIdColumn(Blueprint $table, string $columnName, array $definition): void
+    {
+        $type = $definition['type'] ?? 'bigint';
+        $unsigned = (bool) ($definition['unsigned'] ?? true);
+
+        if ($type === 'int') {
+            if ($unsigned) {
+                $table->unsignedInteger($columnName);
+
+                return;
+            }
+
+            $table->integer($columnName);
+
+            return;
+        }
+
+        if ($unsigned) {
+            $table->unsignedBigInteger($columnName);
+
+            return;
+        }
+
+        $table->bigInteger($columnName);
     }
 };
