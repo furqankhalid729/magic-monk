@@ -25,6 +25,7 @@ Route::controller(ApiController::class)->group(function () {
     Route::get('/get-stores', 'getStores')->name('api.getStores');
     Route::get('/get-products', 'getProducts')->name('api.getProducts');
     Route::get('get-referral-url', 'getReferralUrl')->name('api.getReferralUrl');
+    Route::get('send-interakt-template', 'sendTemplate')->name('api.sendTemplate');
 });
 
 Route::controller(InventoryTransferController::class)->group(function () {

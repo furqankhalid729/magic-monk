@@ -175,6 +175,31 @@ class ApiController extends Controller
         ]);
     }
 
+    public function sendTemplate(Request $request)
+    {
+        $number = $request->query('number');
+        $template = $request->query('template');
+
+        if (!$number || !$template) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Both number and template parameters are required.'
+            ], 400);
+        }
+
+        if($template == "referral_qr_code"){
+            $img = $request->query('img');
+            $response = sendInteraktMessage(
+                $number,
+                [],
+                [$img],
+                $template
+            );
+        }
+
+        return response()->json($response);
+    }
+
     private function generateReferralId(): string
     {
         do {
