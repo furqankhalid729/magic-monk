@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('agent_login_sessions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
+            // agents.id is a legacy signed `int` (not Laravel's default bigint
+            // unsigned), so agent_id must match that exactly or MySQL refuses
+            // the foreign key with "incompatible" column types.
+            $table->integer('agent_id');
+            $table->foreign('agent_id')->references('id')->on('agents')->cascadeOnDelete();
             $table->date('login_date');
             $table->timestamp('login_at');
             $table->timestamp('logout_at')->nullable();
