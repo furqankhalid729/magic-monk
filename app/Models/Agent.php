@@ -17,8 +17,33 @@ class Agent extends Model
         'city',
         'status',
         'source_pos',
-        'source_type'
+        'source_type',
+        'bypass_device_check',
     ];
+
+    protected $hidden = [
+        'device_info',
+    ];
+
+    protected $casts = [
+        'bypass_device_check' => 'boolean',
+        'device_info' => 'array',
+        'device_registered_at' => 'datetime',
+    ];
+
+    public function loginSessions()
+    {
+        return $this->hasMany(AgentLoginSession::class);
+    }
+
+    public function resetDevice(): void
+    {
+        $this->forceFill([
+            'device_id' => null,
+            'device_info' => null,
+            'device_registered_at' => null,
+        ])->save();
+    }
 
     public function locations()
     {

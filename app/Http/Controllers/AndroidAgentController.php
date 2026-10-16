@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agent;
+use App\Models\AgentLoginSession;
 use App\Models\Order;
+use App\Services\AgentDeviceService;
 use App\Services\OdooService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -13,11 +15,13 @@ use Illuminate\Support\Facades\Storage;
 
 class AndroidAgentController extends Controller
 {
-    public function login(Request $request)
+    public function login(Request $request, AgentDeviceService $devices)
     {
         $request->validate([
             'phoneNumber' => 'required|string',
             'password' => 'required|string',
+            'deviceInfo' => 'nullable|array',
+            'deviceInfo.deviceId' => 'nullable|string|max:255',
         ]);
 
         $phone = preg_replace('/^\+91/', '', $request->phoneNumber);
@@ -29,11 +33,89 @@ class AndroidAgentController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        if ($phone === $password) {
-            return response()->json(['message' => 'Login successful.', 'status' => true, 'user' => $user], 200);
+        if ($phone !== $password) {
+            return response()->json(['message' => 'Invalid credentials.', 'status' => false], 200);
         }
 
-        return response()->json(['message' => 'Invalid credentials.', 'status' => false], 200);
+        $deviceInfo = $request->input('deviceInfo');
+        $hasDevice = is_array($deviceInfo) && filled($deviceInfo['deviceId'] ?? null);
+
+        $matched = null;
+        $mismatchFields = null;
+
+        if ($hasDevice) {
+            $user = $devices->bindIfUnregistered($user, $deviceInfo);
+            ['matched' => $matched, 'mismatch_fields' => $mismatchFields] = $devices->compare($user, $deviceInfo);
+        }
+
+        $blockCode = match (true) {
+            $user->bypass_device_check => null,
+            !$hasDevice => 'DEVICE_INFO_REQUIRED',
+            !$matched => 'DEVICE_MISMATCH',
+            default => null,
+        };
+
+        $session = $this->startSession($user, $request, $hasDevice ? $deviceInfo : null, $matched, $mismatchFields, $blockCode !== null);
+
+        if ($blockCode !== null) {
+            return response()->json([
+                'message' => $blockCode === 'DEVICE_MISMATCH'
+                    ? 'Login blocked: this account is registered to a different device. Please contact admin.'
+                    : 'Login blocked: device information is required.',
+                'status' => false,
+                'code' => $blockCode,
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Login successful.',
+            'status' => true,
+            'user' => $user,
+            'sessionId' => $session->id,
+        ], 200);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->validate([
+            'phoneNumber' => 'required|string',
+            'deviceId' => 'nullable|string|max:255',
+        ]);
+
+        $phone = preg_replace('/^\+91/', '', $request->phoneNumber);
+
+        $agent = Agent::where('whatsapp_number', $phone)->first();
+
+        if (!$agent) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $agent->loginSessions()
+            ->whereNull('logout_at')
+            ->where('blocked', false)
+            ->when($request->filled('deviceId'), fn ($query) => $query->where('device_id', $request->deviceId))
+            ->orderByDesc('login_at')
+            ->orderByDesc('id')
+            ->first()
+            ?->update(['logout_at' => now()]);
+
+        return response()->json(['message' => 'Logout successful.', 'status' => true], 200);
+    }
+
+    private function startSession(Agent $agent, Request $request, ?array $deviceInfo, ?bool $matched, ?array $mismatchFields, bool $blocked): AgentLoginSession
+    {
+        return $agent->loginSessions()->create([
+            'login_date' => Carbon::now('Asia/Kolkata')->toDateString(),
+            'login_at' => now(),
+            'device_id' => $deviceInfo['deviceId'] ?? null,
+            'device_info' => $deviceInfo,
+            'device_matched' => $matched,
+            'blocked' => $blocked,
+            'mismatch_fields' => $mismatchFields,
+            'ip' => $request->ip(),
+            'public_ip' => $deviceInfo['publicIp'] ?? null,
+            'app_version' => $deviceInfo['appVersion'] ?? null,
+        ]);
     }
 
     public function order(Request $request)

@@ -35,6 +35,7 @@ Route::controller(InventoryTransferController::class)->group(function () {
 // Agent Routes Group
 Route::prefix('agent')->controller(AndroidAgentController::class)->group(function () {
     Route::post('login', 'login')->name('agent.login');
+    Route::post('logout', 'logout')->name('agent.logout');
     Route::get('order', 'order')->name('agent.order');
     Route::post('token', 'storeToken')->name('agent.token');
     Route::post('order/status', 'updateOrderStatus')->name('agent.order.status');

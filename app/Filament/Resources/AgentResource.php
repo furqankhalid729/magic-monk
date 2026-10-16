@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
@@ -50,6 +54,32 @@ class AgentResource extends Resource
                     'store' => 'Store',
                 ]),
                 TextInput::make('source_pos'),
+                Toggle::make('bypass_device_check')
+                    ->label('Bypass device check')
+                    ->helperText('On: the agent can log in from any device (devices are still recorded). Off: only the registered device is allowed.')
+                    ->default(true),
+                Section::make('Registered device')
+                    ->visibleOn('edit')
+                    ->columns(2)
+                    ->schema([
+                        Placeholder::make('device_model')
+                            ->label('Device')
+                            ->content(fn (?Agent $record) => $record?->device_id
+                                ? trim(data_get($record->device_info, 'brand') . ' ' . data_get($record->device_info, 'modelName'))
+                                : 'No device registered yet'),
+                        Placeholder::make('device_id_value')
+                            ->label('Device ID')
+                            ->content(fn (?Agent $record) => $record?->device_id ?? '—'),
+                        Placeholder::make('device_os')
+                            ->label('OS')
+                            ->content(fn (?Agent $record) => data_get($record?->device_info, 'osName')
+                                ? data_get($record->device_info, 'platform') . ' ' . data_get($record->device_info, 'osVersion')
+                                : '—'),
+                        Placeholder::make('device_registered')
+                            ->label('Registered at')
+                            ->content(fn (?Agent $record) => $record?->device_registered_at
+                                ?->timezone('Asia/Kolkata')->format('d M Y, h:i A') ?? '—'),
+                    ]),
             ]);
     }
 
@@ -85,6 +115,11 @@ class AgentResource extends Resource
                         'danger' => 'inactive',
                     ])
                     ->sortable(),
+
+                IconColumn::make('bypass_device_check')
+                    ->label('Bypass device check')
+                    ->boolean()
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -102,7 +137,7 @@ class AgentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\LoginSessionsRelationManager::class,
         ];
     }
 
